@@ -1,4 +1,4 @@
-from utilpackage.path import path_definition
+from ml_project_util.path import path_definition
 
 BasePath, pathDataset, pathRawData, pathJoinedData, pathSavedModels = path_definition()
 

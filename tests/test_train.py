@@ -3,9 +3,9 @@ import os
 from tensorflow.keras import layers, models
 from tensorflow.keras.applications import VGG16
 from dotenv import load_dotenv
-from utilpackage.train import train, freeze_layers, unfreeze_head, unfreeze_block
-from utilpackage.path import path_definition
-from utilpackage.flatten_model import flatten_condtitional
+from ml_project_util.train import train, freeze_layers, unfreeze_head, unfreeze_block
+from ml_project_util.path import path_definition
+from ml_project_util.flatten_model import flatten_condtitional
 
 TOY_MODEL = 1
 TRAIN = 1

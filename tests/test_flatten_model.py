@@ -1,6 +1,6 @@
-from utilpackage.path import path_definition
-from utilpackage.model_evaluation import model_evaluation_precise
-from utilpackage.flatten_model import copy_all_weights
+from ml_project_util.path import path_definition
+from ml_project_util.model_evaluation import model_evaluation_precise
+from ml_project_util.flatten_model import copy_all_weights
 import tensorflow as tf
 import json
 from tensorflow.keras.applications import VGG16

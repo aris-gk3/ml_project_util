@@ -13,10 +13,9 @@ Main functions are:
 For local execution: .env file with BASE_PATH, PATH_DATASET, PATH_RAWDATA, PATH_JOINEDDATA, PATH_SAVEDMODELS
 
 1. Python = 3.12.9
-2. tensorflow = 
-3. notebook = 
-4. matplotlib = 
-5. dotenv = 
+2. tensorflow = 2.19.0
+3. matplotlib = 3.10.0
+4. dotenv = 0.9.9
 
 ## Testing
 
