@@ -17,6 +17,8 @@ For local execution: .env file with BASE_PATH, PATH_DATASET, PATH_RAWDATA, PATH_
 3. matplotlib = 3.10.0
 4. dotenv = 0.9.9
 
+To install on cloud notebooks ```!pip install git+https://github.com/aris-gk3/ml_project_util.git ```
+
 ## Testing
 
 Manual execution of test*.py files & check of results.
