@@ -35,7 +35,6 @@ def flatten_condtitional(model, name):
     if name.lower()[:3] == 'cd1':
         vgg_base = VGG16(weights='imagenet', include_top=False, input_shape=(224, 224, 3))
         model_new = models.Sequential()
-        model.add(tf.keras.layers.InputLayer(input_shape=(224, 224, 3)))
         for layer in vgg_base.layers:
             model_new.add(layer)
         model_new.add(layers.Flatten())
