@@ -1,4 +1,4 @@
-from utilpackage.path import path_definition
+from .path import path_definition
 import tensorflow as tf
 from tensorflow.keras.utils import image_dataset_from_directory
 from tensorflow.keras.applications.vgg16 import preprocess_input

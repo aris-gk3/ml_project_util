@@ -2,7 +2,7 @@ import tensorflow as tf
 from tensorflow.keras import layers
 from tensorflow.keras.utils import image_dataset_from_directory
 from tensorflow.keras.applications.vgg16 import preprocess_input
-from utilpackage.path import path_definition
+from .path import path_definition
 
 def load_preprocess():
     _, pathDataset, _, _, _ = path_definition()
