@@ -4,9 +4,11 @@ from .path import path_definition
 def save_range(min_in, max_in, layer_name):
     BASE_PATH, PATH_DATASET, PATH_RAWDATA, PATH_JOINEDDATA, PATH_SAVEDMODELS = path_definition()
     filepath = f'{BASE_PATH}/Docs_Reports/activation_range.json'
-
-    with open(filepath, 'r') as file:
-        layer_min_max = json.load(file)
+    try:
+        with open(filepath, 'r') as file:
+            layer_min_max = json.load(file)
+    except:
+        layer_min_max = {}
 
     layer_min_max[layer_name] = (min_in, max_in)
 
