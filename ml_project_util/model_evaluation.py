@@ -26,7 +26,7 @@ def model_evaluation(model):
     print(f'Validation loss is: {loss}')
     print(f'Validation accuracy is: {accuracy}')
 
-def model_evaluation_precise(model):
+def model_evaluation_precise(model, batch_len=157):
     _, pathDataset, _, _, _ = path_definition()
     val_dataset = image_dataset_from_directory(
         pathDataset,
@@ -50,15 +50,16 @@ def model_evaluation_precise(model):
 
     batch_no = 0
     for batch in val_dataset:
-        print(f'Batch Number: {batch_no}')
-        batch_no = batch_no + 1
+        if batch < batch_len:
+            print(f'Batch Number: {batch_no}')
+            batch_no = batch_no + 1
 
-        images, labels = batch
-        preds = model(images, training=False)
-        acc_metric.update_state(labels, preds)
+            images, labels = batch
+            preds = model(images, training=False)
+            acc_metric.update_state(labels, preds)
 
-        loss = loss_fn(labels, preds)
-        loss_metric.update_state(loss)
+            loss = loss_fn(labels, preds)
+            loss_metric.update_state(loss)
 
     final_acc = acc_metric.result().numpy()
     final_loss = loss_metric.result().numpy()
