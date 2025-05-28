@@ -50,7 +50,7 @@ def model_evaluation_precise(model, batch_len=157):
 
     batch_no = 0
     for batch in val_dataset:
-        if batch < batch_len:
+        if batch_no < batch_len:
             print(f'Batch Number: {batch_no}')
             batch_no = batch_no + 1
 

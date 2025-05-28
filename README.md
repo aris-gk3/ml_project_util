@@ -1,6 +1,6 @@
 # MLProjectUtil
 
-A small package hosted in Github for deploying quickly, reusable code in my project.
+A small package hosted in Github for deploying quickly, reusable code in my project across various platforms.
 
 Main functions are:
 
