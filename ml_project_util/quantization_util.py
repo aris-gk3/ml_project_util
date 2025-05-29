@@ -1,24 +1,54 @@
 import json
 import math
 import numpy as np
+import matplotlib.pyplot as plt
 from tensorflow.keras.layers import Conv2D, Dense
 from .path import path_definition
 
-# def wt_range_search(model):
-#     weight_ranges = {}
 
-#     for layer in model.layers:
-#         if hasattr(layer, "get_weights") and hasattr(layer, "set_weights"):
-#             weights = layer.get_weights()
-#             if weights:
-#                 layer_ranges = []
-#                 for w in weights:
-#                     w_min = float(np.min(w))
-#                     w_max = float(np.max(w))
-#                     layer_ranges.append({"min": w_min, "max": w_max})
-#                 weight_ranges[layer.name] = layer_ranges
+def separate_plots(model, model_name):
+    # Initialize dictionaries
+    weight_distributions = {}
+    bias_distributions = {}
 
-#     return weight_ranges
+    for layer in model.layers:
+        if hasattr(layer, "get_weights") and hasattr(layer, "set_weights"):
+            weights = layer.get_weights()
+            if weights:
+                if len(weights) >= 1:
+                    flat_weights = weights[0].flatten()
+                    weight_distributions[layer.name] = flat_weights
+                if len(weights) >= 2:
+                    flat_biases = weights[1].flatten()
+                    bias_distributions[layer.name] = flat_biases
+
+    BASE_PATH, PATH_DATASET, PATH_RAWDATA, PATH_JOINEDDATA, PATH_SAVEDMODELS = path_definition()
+    parent_name = model_name[:3]
+    short_name = model_name[:-10]
+    # Plot weight distributions
+    for i, (layer_name, weights) in enumerate(weight_distributions.items()):
+        plt.figure(figsize=(6, 4))
+        plt.hist(weights, bins=100, color='dodgerblue', alpha=0.7)
+        plt.title(f"Weight Distribution: {layer_name}")
+        plt.xlabel("Weight Value")
+        plt.ylabel("Frequency")
+        plt.grid(True)
+        plt.tight_layout()
+        plt.savefig(f"{BASE_PATH}/Docs_Reports/AnalysisPlots/{parent_name}/{short_name}_layer{i:02d}_wt.png")
+        plt.show()
+
+    # Plot bias distributions
+    for i, (layer_name, biases) in enumerate(bias_distributions.items()):
+        plt.figure(figsize=(6, 4))
+        plt.hist(biases, bins=100, color='tomato', alpha=0.7)
+        plt.title(f"Bias Distribution: {layer_name}")
+        plt.xlabel("Bias Value")
+        plt.ylabel("Frequency")
+        plt.grid(True)
+        plt.tight_layout()
+        plt.savefig(f"{BASE_PATH}/Docs_Reports/AnalysisPlots/{parent_name}/{short_name}_layer{i:02d}_bias.png")
+        plt.show()
+
 
 def wt_range_search(model, model_name):
     # Final structured dictionary
@@ -49,8 +79,6 @@ def wt_range_search(model, model_name):
     # Pretty print
     print(json.dumps(layer_ranges, indent=2))
 
-
-    
     # Find path
     BASE_PATH, PATH_DATASET, PATH_RAWDATA, PATH_JOINEDDATA, PATH_SAVEDMODELS = path_definition()
     short_name = model_name[:-10]
@@ -61,6 +89,7 @@ def wt_range_search(model, model_name):
     print(f"Saved json in: {range_path}")
 
     return layer_ranges
+
 
 def save_range(min_in, max_in, model_name, layer_name):
     BASE_PATH, PATH_DATASET, PATH_RAWDATA, PATH_JOINEDDATA, PATH_SAVEDMODELS = path_definition()
