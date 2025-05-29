@@ -1,9 +1,9 @@
 import tensorflow as tf
-from tensorflow.keras.optimizers import Adam,AdamW, SGD
-from tensorflow.keras.callbacks import ModelCheckpoint
-from utilpackage.load_preprocess import load_preprocess
-from utilpackage.path import path_definition
-from utilpackage.history import save_json
+from tensorflow.keras.optimizers import Adam,AdamW, SGD # type: ignore
+from tensorflow.keras.callbacks import ModelCheckpoint # type: ignore
+from ml_project_util.load_preprocess import load_preprocess
+from ml_project_util.path import path_definition
+from ml_project_util.history import save_json
 
 
 ### Function for quick training

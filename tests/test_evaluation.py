@@ -1,8 +1,8 @@
 from ml_project_util.model_evaluation import model_evaluation_precise
 from ml_project_util.path import path_definition
 import tensorflow as tf
-from tensorflow.keras.utils import image_dataset_from_directory
-from tensorflow.keras.applications.vgg16 import preprocess_input
+from tensorflow.keras.utils import image_dataset_from_directory # type: ignore
+from tensorflow.keras.applications.vgg16 import preprocess_input # type: ignore
 import json
 
 

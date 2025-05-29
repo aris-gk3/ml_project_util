@@ -1,6 +1,6 @@
 import tensorflow as tf
-from tensorflow.keras.applications import VGG16
-from tensorflow.keras import models, layers
+from tensorflow.keras.applications import VGG16 # type: ignore
+from tensorflow.keras import models, layers # type: ignore
 
 
 ### Functions for converting a model that has functional layers to one that has sequential layers.

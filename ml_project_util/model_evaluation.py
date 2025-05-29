@@ -1,7 +1,7 @@
 from .path import path_definition
 import tensorflow as tf
-from tensorflow.keras.utils import image_dataset_from_directory
-from tensorflow.keras.applications.vgg16 import preprocess_input
+from tensorflow.keras.utils import image_dataset_from_directory # type: ignore
+from tensorflow.keras.applications.vgg16 import preprocess_input # type: ignore
 
 ### Functions for evaluating the model on the training dataset
 

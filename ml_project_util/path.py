@@ -2,12 +2,12 @@
 
 def path_definition():
     try: # Google Colab Definitions
-        from google.colab import drive
+        from google.colab import drive # type: ignore
         drive.mount('/content/drive')
         platform = 'Colab'
     except: 
         try: # Local Machines Definitions
-            from dotenv import load_dotenv
+            from dotenv import load_dotenv # type: ignore
             import os
 
             load_dotenv()  # loads variables from .env into os.environ

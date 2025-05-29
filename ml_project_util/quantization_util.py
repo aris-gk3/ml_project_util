@@ -2,8 +2,8 @@ import json
 import math
 import numpy as np
 import matplotlib.pyplot as plt
-from tabulate import tabulate
-from tensorflow.keras.layers import Conv2D, Dense
+from tabulate import tabulate # type: ignore
+from tensorflow.keras.layers import Conv2D, Dense # type: ignore
 from .path import path_definition
 
 ### Info & visualization for quantization
