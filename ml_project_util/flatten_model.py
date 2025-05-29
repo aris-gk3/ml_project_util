@@ -2,6 +2,10 @@ import tensorflow as tf
 from tensorflow.keras.applications import VGG16
 from tensorflow.keras import models, layers
 
+
+### Functions for converting a model that has functional layers to one that has sequential layers.
+# No residual connections or other network structure other than a sequential are assumed.
+
 def copy_all_weights(old_model, new_model):
     # Functional layer -> many sequential layers
     

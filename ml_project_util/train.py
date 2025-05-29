@@ -5,6 +5,9 @@ from utilpackage.load_preprocess import load_preprocess
 from utilpackage.path import path_definition
 from utilpackage.history import save_json
 
+
+### Function for quick training
+
 def train(model, epochs, lr, optimizer, name, parent_name=None):
     train_dataset, val_dataset = load_preprocess()
 
@@ -63,6 +66,9 @@ def unfreeze_block(model, verbose=0):
     if(verbose):
         print_model_layers(model)
         print('\n')
+
+
+### Training Visualization
 
 def print_model_layers(model, indent=0):
     for layer in model.layers:

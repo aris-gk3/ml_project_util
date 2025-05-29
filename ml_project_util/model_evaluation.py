@@ -3,6 +3,8 @@ import tensorflow as tf
 from tensorflow.keras.utils import image_dataset_from_directory
 from tensorflow.keras.applications.vgg16 import preprocess_input
 
+### Functions for evaluating the model on the training dataset
+
 def model_evaluation(model):
     _, PATH_DATASET, _, _, _ = path_definition()
     val_dataset = image_dataset_from_directory(

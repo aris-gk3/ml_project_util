@@ -1,3 +1,5 @@
+### Find most used paths in all enviroments/machines
+
 def path_definition():
     try: # Google Colab Definitions
         from google.colab import drive

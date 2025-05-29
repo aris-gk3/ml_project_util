@@ -4,6 +4,9 @@ from tensorflow.keras.utils import image_dataset_from_directory
 from tensorflow.keras.applications.vgg16 import preprocess_input
 from .path import path_definition
 
+
+### Implements all step of training and preprocessing
+
 def load_preprocess():
     _, pathDataset, _, _, _ = path_definition()
     train_dataset = image_dataset_from_directory(

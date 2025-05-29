@@ -2,6 +2,9 @@ import json
 import matplotlib.pyplot as plt
 from .path import path_definition
 
+
+### Utility functions for handling history object of training
+
 # Path relative to Docs_Reports
 def concatenate_json(relpath1, relpath2, output_filename):
     pathBase, _, _, PATH_JOINEDDATA, _ = path_definition()
@@ -18,6 +21,7 @@ def concatenate_json(relpath1, relpath2, output_filename):
         json.dump(result, out, indent=4)
 
     print(f"Concatenation done. Saved to {fullpath_out}.")
+
 
 # only name as argument
 def plot_json(json_name, img_name, data_type='raw'):
@@ -62,6 +66,7 @@ def plot_json(json_name, img_name, data_type='raw'):
     plt.tight_layout()
     plt.show()
 
+
 # only name as argument
 def save_json(history, json_name, parent=None):
     _, _, PATH_RAWDATA, _, _ = path_definition()
@@ -74,6 +79,7 @@ def save_json(history, json_name, parent=None):
     data.update(history.history)
     with open(filepath, 'w') as f:
         json.dump(data, f, indent=4)
+
 
 # only name as argument
 def save_best_model_history(json_name, number, data_type='raw'):
