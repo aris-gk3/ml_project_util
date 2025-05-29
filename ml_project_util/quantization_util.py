@@ -41,6 +41,7 @@ def separate_plots(model, model_name, mode='sv'):
             plt.savefig(f"{BASE_PATH}/Docs_Reports/AnalysisPlots/{parent_name}/{short_name}_layer{i:02d}_wt.png")
         if mode=='v' or mode=='sv':
             plt.show()
+        plt.close()
 
     # Plot bias distributions
     for i, (layer_name, biases) in enumerate(bias_distributions.items()):
@@ -55,6 +56,7 @@ def separate_plots(model, model_name, mode='sv'):
             plt.savefig(f"{BASE_PATH}/Docs_Reports/AnalysisPlots/{parent_name}/{short_name}_layer{i:02d}_bias.png")
         if mode=='v' or mode=='sv':
             plt.show()
+        plt.close()
 
 
 def wt_range_search(model, model_name):
