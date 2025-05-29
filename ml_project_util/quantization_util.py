@@ -3,6 +3,22 @@ import math
 from tensorflow.keras.layers import Conv2D, Dense
 from .path import path_definition
 
+def wt_range_search(model):
+    weight_ranges = {}
+
+    for layer in model.layers:
+        if hasattr(layer, "get_weights") and hasattr(layer, "set_weights"):
+            weights = layer.get_weights()
+            if weights:
+                layer_ranges = []
+                for w in weights:
+                    w_min = float(np.min(w))
+                    w_max = float(np.max(w))
+                    layer_ranges.append({"min": w_min, "max": w_max})
+                weight_ranges[layer.name] = layer_ranges
+
+    return weight_ranges
+
 
 def save_range(min_in, max_in, model_name, layer_name):
     BASE_PATH, PATH_DATASET, PATH_RAWDATA, PATH_JOINEDDATA, PATH_SAVEDMODELS = path_definition()
