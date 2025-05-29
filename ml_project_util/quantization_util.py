@@ -157,10 +157,10 @@ def wt_range_search(model, model_name, mode='sv', filepath='0'):
             range_path = f'{BASE_PATH}/Docs_Reports/Quant/Ranges/{short_name}_wt_range.json'
         else:
             range_path = filepath
-    # Save json
-    with open(range_path, "w") as f:
-        json.dump(layer_ranges, f, indent=4)
-    print(f"Saved json in: {range_path}")
+        # Save json
+        with open(range_path, "w") as f:
+            json.dump(layer_ranges, f, indent=4)
+        print(f"Saved json in: {range_path}")
 
     return layer_ranges
 
