@@ -6,6 +6,10 @@ from tensorflow.keras.layers import Conv2D, Dense
 from .path import path_definition
 
 
+def wt_bias_statistics_md():
+    
+
+
 def separate_plots(model, model_name, mode='sv', filepath='0'):
     # s: save
     # v: verbose
