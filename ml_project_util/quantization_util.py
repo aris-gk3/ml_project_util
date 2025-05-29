@@ -7,7 +7,7 @@ from .path import path_definition
 
 
 def wt_bias_statistics_md():
-    
+    return 0
 
 
 def separate_plots(model, model_name, mode='sv', filepath='0'):
