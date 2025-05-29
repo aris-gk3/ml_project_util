@@ -6,7 +6,7 @@ from tensorflow.keras.layers import Conv2D, Dense
 from .path import path_definition
 
 
-def separate_plots(model, model_name, mode='sv'):
+def separate_plots(model, model_name, mode='sv', filepath='0'):
     # s: save
     # v: verbose
     # sv: save & verbose
@@ -38,7 +38,10 @@ def separate_plots(model, model_name, mode='sv'):
         plt.grid(True)
         plt.tight_layout()
         if mode=='s' or mode=='sv':
-            plt.savefig(f"{BASE_PATH}/Docs_Reports/AnalysisPlots/{parent_name}/{short_name}_layer{i:02d}_wt.png")
+            if filepath=='0':
+                plt.savefig(f"{BASE_PATH}/Docs_Reports/AnalysisPlots/{parent_name}/{short_name}_layer{i:02d}_wt.png")
+            else:
+                plt.savefig(filepath)
         if mode=='v' or mode=='sv':
             plt.show()
         plt.close()
@@ -53,7 +56,10 @@ def separate_plots(model, model_name, mode='sv'):
         plt.grid(True)
         plt.tight_layout()
         if mode=='s' or mode=='sv':
-            plt.savefig(f"{BASE_PATH}/Docs_Reports/AnalysisPlots/{parent_name}/{short_name}_layer{i:02d}_bias.png")
+            if filepath=='0':
+                plt.savefig(f"{BASE_PATH}/Docs_Reports/AnalysisPlots/{parent_name}/{short_name}_layer{i:02d}_bias.png")
+            else:
+                plt.savefig(filepath)
         if mode=='v' or mode=='sv':
             plt.show()
         plt.close()
