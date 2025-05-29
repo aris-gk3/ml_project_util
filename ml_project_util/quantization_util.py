@@ -117,7 +117,10 @@ def separate_plots(model, model_name, mode='sv', filepath='0'):
         plt.close()
 
 
-def wt_range_search(model, model_name):
+def wt_range_search(model, model_name, mode='sv', filepath='0'):
+    # s: save
+    # v: verbose
+    # sv: save & verbose
     # Final structured dictionary
     layer_ranges = {}
 
@@ -143,13 +146,17 @@ def wt_range_search(model, model_name):
 
                 layer_ranges[layer.name] = sub_dict
 
-    # Pretty print
-    print(json.dumps(layer_ranges, indent=2))
+    if mode=='v' or mode=='sv':
+        print(json.dumps(layer_ranges, indent=2))
 
     # Find path
-    BASE_PATH, PATH_DATASET, PATH_RAWDATA, PATH_JOINEDDATA, PATH_SAVEDMODELS = path_definition()
-    short_name = model_name[:-10]
-    range_path = f'{BASE_PATH}/Docs_Reports/Quant/Ranges/{short_name}_wt_range.json'
+    if mode=='s' or mode=='sv':
+        if filepath=='0':
+            BASE_PATH, PATH_DATASET, PATH_RAWDATA, PATH_JOINEDDATA, PATH_SAVEDMODELS = path_definition()
+            short_name = model_name[:-10]
+            range_path = f'{BASE_PATH}/Docs_Reports/Quant/Ranges/{short_name}_wt_range.json'
+        else:
+            range_path = filepath
     # Save json
     with open(range_path, "w") as f:
         json.dump(layer_ranges, f, indent=4)
