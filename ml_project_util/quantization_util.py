@@ -126,6 +126,18 @@ def wt_dist_plots(model, model_name, mode='sv', filepath='0'):
         plt.close()
 
 
+def wt_violin_plot():
+    return 0
+
+def act_violin_plot():
+    return 0
+
+def wt_box_plot():
+    return 0
+
+def act_box_plot():
+    return 0
+
 ### Quantization utilities
 
 def wt_range_search(model, model_name, mode='sv', filepath='0'):
