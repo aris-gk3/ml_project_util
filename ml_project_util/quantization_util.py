@@ -4,22 +4,61 @@ import numpy as np
 from tensorflow.keras.layers import Conv2D, Dense
 from .path import path_definition
 
-def wt_range_search(model):
-    weight_ranges = {}
+# def wt_range_search(model):
+#     weight_ranges = {}
+
+#     for layer in model.layers:
+#         if hasattr(layer, "get_weights") and hasattr(layer, "set_weights"):
+#             weights = layer.get_weights()
+#             if weights:
+#                 layer_ranges = []
+#                 for w in weights:
+#                     w_min = float(np.min(w))
+#                     w_max = float(np.max(w))
+#                     layer_ranges.append({"min": w_min, "max": w_max})
+#                 weight_ranges[layer.name] = layer_ranges
+
+#     return weight_ranges
+
+def wt_range_search(model, model_name):
+    # Final structured dictionary
+    layer_ranges = {}
 
     for layer in model.layers:
         if hasattr(layer, "get_weights") and hasattr(layer, "set_weights"):
             weights = layer.get_weights()
             if weights:
-                layer_ranges = []
-                for w in weights:
-                    w_min = float(np.min(w))
-                    w_max = float(np.max(w))
-                    layer_ranges.append({"min": w_min, "max": w_max})
-                weight_ranges[layer.name] = layer_ranges
+                sub_dict = {}
 
-    return weight_ranges
+                if len(weights) >= 1:  # weights[0] = kernel weights
+                    w = np.array(weights[0])
+                    sub_dict["weight"] = {
+                        "min": float(np.min(w)),
+                        "max": float(np.max(w))
+                    }
 
+                if len(weights) >= 2:  # weights[1] = biases
+                    b = np.array(weights[1])
+                    sub_dict["bias"] = {
+                        "min": float(np.min(b)),
+                        "max": float(np.max(b))
+                    }
+
+                layer_ranges[layer.name] = sub_dict
+
+    # Pretty print
+    print(json.dumps(layer_ranges, indent=2))
+
+    with open(layer_ranges, "w") as f:
+        json.dump(layer_ranges, f, indent=4)
+    
+    # Find path
+    BASE_PATH, PATH_DATASET, PATH_RAWDATA, PATH_JOINEDDATA, PATH_SAVEDMODELS = path_definition()
+    short_name = model_name[:-10]
+    range_path = f'{BASE_PATH}/Docs_Reports/Quant/Ranges/{short_name}_wt_range.json'
+    print(f"Saved json in: {range_path}")
+
+    return layer_ranges
 
 def save_range(min_in, max_in, model_name, layer_name):
     BASE_PATH, PATH_DATASET, PATH_RAWDATA, PATH_JOINEDDATA, PATH_SAVEDMODELS = path_definition()
