@@ -1,5 +1,6 @@
 import json
 import math
+import numpy as np
 from tensorflow.keras.layers import Conv2D, Dense
 from .path import path_definition
 
