@@ -2,11 +2,59 @@ import json
 import math
 import numpy as np
 import matplotlib.pyplot as plt
+from tabulate import tabulate
 from tensorflow.keras.layers import Conv2D, Dense
 from .path import path_definition
 
 
-def wt_bias_statistics_md():
+def wt_bias_statistics_md(model):
+    weight_distributions = {}
+    bias_distributions = {}
+
+    for layer in model.layers:
+        if hasattr(layer, "get_weights") and hasattr(layer, "set_weights"):
+            weights = layer.get_weights()
+            if weights:
+                if len(weights) >= 1:
+                    flat_weights = weights[0].flatten()
+                    weight_distributions[layer.name] = flat_weights
+                if len(weights) >= 2:
+                    flat_biases = weights[1].flatten()
+                    bias_distributions[layer.name] = flat_biases
+
+    # Summarize weights
+    weight_summary = []
+    for layer, weights in weight_distributions.items():
+        weights = np.array(weights)
+        weight_summary.append([
+            layer,
+            len(weights),
+            np.min(weights),
+            np.max(weights),
+            np.mean(weights),
+            np.std(weights)
+        ])
+
+    # Summarize biases
+    bias_summary = []
+    for layer, biases in bias_distributions.items():
+        biases = np.array(biases)
+        bias_summary.append([
+            layer,
+            len(biases),
+            np.min(biases),
+            np.max(biases),
+            np.mean(biases),
+            np.std(biases)
+        ])
+
+    # Print as markdown tables
+    print("### Weight Distributions per Layer")
+    print(tabulate(weight_summary, headers=["Layer", "Count", "Min", "Max", "Mean", "Std"], tablefmt="github"))
+
+    print("\n### Bias Distributions per Layer")
+    print(tabulate(bias_summary, headers=["Layer", "Count", "Min", "Max", "Mean", "Std"], tablefmt="github"))
+
     return 0
 
 
