@@ -6,7 +6,10 @@ from tensorflow.keras.layers import Conv2D, Dense
 from .path import path_definition
 
 
-def separate_plots(model, model_name):
+def separate_plots(model, model_name, mode='sv'):
+    # s: save
+    # v: verbose
+    # sv: save & verbose
     # Initialize dictionaries
     weight_distributions = {}
     bias_distributions = {}
@@ -34,8 +37,10 @@ def separate_plots(model, model_name):
         plt.ylabel("Frequency")
         plt.grid(True)
         plt.tight_layout()
-        plt.savefig(f"{BASE_PATH}/Docs_Reports/AnalysisPlots/{parent_name}/{short_name}_layer{i:02d}_wt.png")
-        plt.show()
+        if mode=='s' or mode=='sv':
+            plt.savefig(f"{BASE_PATH}/Docs_Reports/AnalysisPlots/{parent_name}/{short_name}_layer{i:02d}_wt.png")
+        if mode=='v' or mode=='sv':
+            plt.show()
 
     # Plot bias distributions
     for i, (layer_name, biases) in enumerate(bias_distributions.items()):
@@ -46,8 +51,10 @@ def separate_plots(model, model_name):
         plt.ylabel("Frequency")
         plt.grid(True)
         plt.tight_layout()
-        plt.savefig(f"{BASE_PATH}/Docs_Reports/AnalysisPlots/{parent_name}/{short_name}_layer{i:02d}_bias.png")
-        plt.show()
+        if mode=='s' or mode=='sv':
+            plt.savefig(f"{BASE_PATH}/Docs_Reports/AnalysisPlots/{parent_name}/{short_name}_layer{i:02d}_bias.png")
+        if mode=='v' or mode=='sv':
+            plt.show()
 
 
 def wt_range_search(model, model_name):
