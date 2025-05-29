@@ -6,6 +6,11 @@ from tabulate import tabulate
 from tensorflow.keras.layers import Conv2D, Dense
 from .path import path_definition
 
+### Info & visualization for quantization
+
+def act_statistics_md(model):
+    return 0
+
 
 def wt_bias_statistics_md(model):
     weight_distributions = {}
@@ -58,7 +63,11 @@ def wt_bias_statistics_md(model):
     return 0
 
 
-def separate_plots(model, model_name, mode='sv', filepath='0'):
+def act_dist_plots(model, model_name, mode='sv', filepath='0'):
+    return 0
+
+
+def wt_dist_plots(model, model_name, mode='sv', filepath='0'):
     # s: save
     # v: verbose
     # sv: save & verbose
@@ -116,6 +125,8 @@ def separate_plots(model, model_name, mode='sv', filepath='0'):
             plt.show()
         plt.close()
 
+
+### Quantization utilities
 
 def wt_range_search(model, model_name, mode='sv', filepath='0'):
     # s: save
