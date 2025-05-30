@@ -189,7 +189,7 @@ def act_dist_plots(sampled_files, model, model_name, mode='sv', filepath='0'):
                 layer_histograms[layer.name]["counts"] += counts
 
     # Plot histograms
-    for layer_name, hist in layer_histograms.items():
+    for i, (layer_name, hist) in enumerate(layer_histograms.items()):
         bins = hist["bins"]
         counts = hist["counts"]
 
