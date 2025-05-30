@@ -141,8 +141,52 @@ def wt_bias_statistics_md(model):
     return 0
 
 
-def act_dist_plots(model, model_name, mode='sv', filepath='0'):
-    return 0
+def act_dist_plots(sampled_files, model, model_name, mode='sv', filepath='0'):
+    # s: save
+    # v: verbose
+    # sv: save & verbose
+
+    tf.config.run_functions_eagerly(True)
+
+    # First pass: collect min/max activation range per layer
+    layer_min_max = {}
+    layers_list = [layer.name for layer in model.layers if isinstance(layer, (Conv2D, Dense))]
+
+    # Pass 1: Find min and max per layer
+    for file_path in sampled_files:
+        x = load_and_preprocess_image(file_path)
+
+        for i, layer in enumerate(model.layers):
+            x = layer(x)
+
+            if layer.name in layers_list:
+                act_min = tf.reduce_min(x).numpy()
+                act_max = tf.reduce_max(x).numpy()
+
+                if layer.name not in layer_min_max:
+                    layer_min_max[layer.name] = {"min": act_min, "max": act_max}
+                else:
+                    layer_min_max[layer.name]['min'] = min(layer_min_max[layer.name]['min'], act_min)
+                    layer_min_max[layer.name]['max'] = max(layer_min_max[layer.name]['max'], act_max)
+
+    # Create bins for each layer
+    num_bins = 128
+    layer_histograms = {}
+    for layer_name, stats in layer_min_max.items():
+        bins = np.linspace(stats["min"], stats["max"], num_bins + 1)
+        layer_histograms[layer_name] = {"bins": bins, "counts": np.zeros(num_bins, dtype=int)}
+
+    # Second pass: fill histogram counts
+    for file_path in sampled_files:
+        x = load_and_preprocess_image(file_path)
+
+        for i, layer in enumerate(model.layers):
+            x = layer(x)
+
+            if layer.name in layer_histograms:
+                flat_activations = tf.reshape(x, [-1]).numpy()
+                counts, _ = np.histogram(flat_activations, bins=layer_histograms[layer.name]["bins"])
+                layer_histograms[layer.name]["counts"] += counts
 
 
 def wt_dist_plots(model, model_name, mode='sv', filepath='0'):
