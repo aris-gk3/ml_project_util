@@ -3,6 +3,7 @@ import math
 import numpy as np
 import os
 import random
+import seaborn as sns
 import matplotlib.pyplot as plt
 from tabulate import tabulate # type: ignore
 import tensorflow as tf
@@ -52,7 +53,7 @@ def load_and_preprocess_image(file_path):
     return img_array
 
 
-def act_statistics_md(model, sampled_files):
+def activation_statistics_md(model, sampled_files):
     # Initialize dict to store activations per layer
     layers_list = []
     for i in model.layers:
@@ -141,7 +142,7 @@ def wt_bias_statistics_md(model):
     return 0
 
 
-def act_dist_plots(sampled_files, model, model_name, mode='sv', filepath='0'):
+def activation_dist_plots(sampled_files, model, model_name, mode='sv', filepath='0'):
     # s: save
     # v: verbose
     # sv: save & verbose
@@ -217,6 +218,7 @@ def act_dist_plots(sampled_files, model, model_name, mode='sv', filepath='0'):
         else:
             plt.close()
 
+
 def wt_dist_plots(model, model_name, mode='sv', filepath='0'):
     # s: save
     # v: verbose
@@ -276,17 +278,73 @@ def wt_dist_plots(model, model_name, mode='sv', filepath='0'):
         plt.close()
 
 
+def activation_violin_plot(sampled_files, model, model_name, mode='sv', filepath='0'):
+    tf.config.run_functions_eagerly(True)
+
+    layers_list = [layer.name for layer in model.layers if isinstance(layer, (Conv2D, Dense))]
+
+    # Dict to accumulate activations per layer
+    layer_activations = {layer_name: [] for layer_name in layers_list}
+
+    # Collect activations (flattened) from all files per layer
+    for file_path in sampled_files:
+        x = load_and_preprocess_image(file_path)
+        for layer in model.layers:
+            x = layer(x)
+            if layer.name in layers_list:
+                flat_acts = tf.reshape(x, [-1]).numpy()
+                layer_activations[layer.name].append(flat_acts)
+
+    # Concatenate activations per layer into single arrays
+    for layer_name in layer_activations:
+        layer_activations[layer_name] = np.concatenate(layer_activations[layer_name])
+
+    # Prepare data for seaborn violin plot
+    import pandas as pd
+
+    data = []
+    for layer_name, acts in layer_activations.items():
+        # Limit number of points if data is huge (optional)
+        if len(acts) > 10000:
+            acts = np.random.choice(acts, 10000, replace=False)
+        for val in acts:
+            data.append({"Layer": layer_name, "Activation": val})
+
+    df = pd.DataFrame(data)
+
+    # Plot violin plot
+    plt.figure(figsize=(10, 8))
+    sns.violinplot(y="Layer", x="Activation", data=df, scale='width', inner='quartile')
+    plt.title("Activation Distributions per Layer")
+    plt.xlabel("Activation Value")
+    plt.ylabel("Layer")
+    plt.tight_layout()
+
+    # Save and/or show the plot
+    if mode=='s' or mode=='sv':
+        if filepath=='0':
+            BASE_PATH, _, _, _, _ = path_definition()
+            parent_name = model_name[:3]
+            short_name = model_name[:-10]
+            plt.savefig(f"{BASE_PATH}/Docs_Reports/AnalysisPlots/{parent_name}/{short_name}_activation_violin.png")
+        else:
+            plt.savefig(filepath)
+    if mode=='v' or mode=='sv':
+        plt.show()
+
+
+# To-do
 def wt_violin_plot():
     return 0
 
-def act_violin_plot():
+# To-do
+def act_box_plot():
     return 0
+
 
 def wt_box_plot():
     return 0
 
-def act_box_plot():
-    return 0
 
 ### Quantization utilities
 
