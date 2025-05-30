@@ -188,6 +188,32 @@ def act_dist_plots(sampled_files, model, model_name, mode='sv', filepath='0'):
                 counts, _ = np.histogram(flat_activations, bins=layer_histograms[layer.name]["bins"])
                 layer_histograms[layer.name]["counts"] += counts
 
+    # Plot histograms
+    for layer_name, hist in layer_histograms.items():
+        bins = hist["bins"]
+        counts = hist["counts"]
+
+        # Compute bin centers for plotting
+        bin_centers = (bins[:-1] + bins[1:]) / 2
+
+        plt.figure(figsize=(8, 4))
+        plt.bar(bin_centers, counts, width=(bins[1] - bins[0]), edgecolor='black')
+        plt.yscale('log')  # set y-axis to log scale
+        plt.title(f"Activation Histogram (log frequency) - {layer_name}")
+        plt.xlabel("Activation Value")
+        plt.ylabel("Frequency (log scale)")
+        plt.grid(True, which='major', ls="--")
+        plt.tight_layout()
+        if mode=='s' or mode=='sv':
+            if filepath=='0':
+                BASE_PATH, _, _, _, _ = path_definition()
+                parent_name = model_name[:3]
+                short_name = model_name[:-10]
+                plt.savefig(f"{BASE_PATH}/Docs_Reports/AnalysisPlots/{parent_name}/{short_name}_layer{i:02d}_activation.png")
+            else:
+                plt.savefig(filepath)
+        if mode=='v' or mode=='sv':
+            plt.show()
 
 def wt_dist_plots(model, model_name, mode='sv', filepath='0'):
     # s: save
