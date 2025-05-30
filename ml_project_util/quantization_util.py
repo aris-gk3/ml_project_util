@@ -1,15 +1,93 @@
 import json
 import math
 import numpy as np
+import os
+import random
 import matplotlib.pyplot as plt
 from tabulate import tabulate # type: ignore
+import tensorflow as tf
 from tensorflow.keras.layers import Conv2D, Dense # type: ignore
+from tensorflow.keras.applications.vgg16 import preprocess_input
 from .path import path_definition
+from .load_preprocess import load_preprocess
+
 
 ### Info & visualization for quantization
 
-def act_statistics_md(model):
-    return 0
+def subsample_imgdir(num_samples=100):
+    train_dataset, val_dataset = load_preprocess()
+
+    import os
+    import random
+
+    _, PATH_DATASET, _, _, _ = path_definition()
+    img_dir1 = f'{PATH_DATASET}/DogConverted'
+    img_dir2 = f'{PATH_DATASET}/CatConverted'
+    num_samples = 40
+
+    valid_extensions = ('.png', '.jpg', '.jpeg')
+
+    # Initialize list
+    all_files = []
+
+    # Loop through both directories
+    for img_dir in [img_dir1, img_dir2]:
+        for f in os.listdir(img_dir):
+            full_path = os.path.join(img_dir, f)
+            if os.path.isfile(full_path) and f.lower().endswith(valid_extensions):
+                all_files.append(full_path)
+                
+    random.seed(99)  # For reproducibility
+    sampled_files = random.sample(all_files, num_samples)
+
+    return sampled_files
+
+
+def load_and_preprocess_image(file_path):
+    img = tf.keras.utils.load_img(file_path, target_size=(224, 224, 3))
+    img_array = tf.keras.utils.img_to_array(img)
+    img_array = preprocess_input(img_array)
+    # img_array = img_array[..., ::-1]                                  # Reverses the last axis (channels), RGB -> BGR
+    img_array = tf.expand_dims(img_array, axis=0)                       # Add batch dimension
+    return img_array
+
+
+def act_statistics_md(model, sampled_files):
+    # Initialize dict to store activations per layer
+    layers_list = []
+    for i in model.layers:
+        if isinstance(i, Conv2D) or isinstance(i, Dense):
+            layers_list.append(i.name)
+    layer_activations = {layer_name: [] for layer_name in layers_list}
+
+    # Process input files
+    for file_path in sampled_files:
+        x = load_and_preprocess_image(file_path)
+
+        for layer in model.layers:
+            x = layer(x)
+
+            if layer.name in layers_list:
+                act_np = x.numpy().flatten()
+                layer_activations[layer.name].append(act_np)
+
+    # Prepare data for tabulate
+    table_data = []
+    for layer_name, acts_list in layer_activations.items():
+        all_acts = np.concatenate(acts_list)
+        count = all_acts.size
+        min_act = all_acts.min()
+        max_act = all_acts.max()
+        mean_act = all_acts.mean()
+        std_act = all_acts.std()
+
+        table_data.append([layer_name, count, min_act, max_act, mean_act, std_act])
+
+    # Define headers
+    headers = ["Layer", "Count", "Min", "Max", "Mean", "Std"]
+
+    # Print table in markdown format
+    print(tabulate(table_data, headers=headers, tablefmt="github", floatfmt=".4f"))
 
 
 def wt_bias_statistics_md(model):
