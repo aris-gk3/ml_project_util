@@ -220,6 +220,51 @@ def activation_dist_plots(sampled_files, model, model_name, mode='sv', filepath=
             plt.close()
 
 
+def activation_range_plot(sampled_files, model, model_name, mode='sv', filepath='0'):
+    try:
+        BASE_PATH, _, _, _, _ = path_definition()
+        short_name = model_name[:-10]
+        testpath = f"{BASE_PATH}/Docs_Reports/Quant/Ranges/{short_name}_activation_range.json"
+        with open(testpath) as f:
+            layer_min_max = json.load(f)
+    except:
+        layer_min_max = activation_range_search(sampled_files, model, model_name, mode='0', filepath=filepath)
+
+    keys = list(layer_min_max.keys())
+    # values = list(layer_min_max.values())
+    min_values = []
+    max_values = []
+    for i in keys:
+        # print(layer_min_max[i])
+        min_values.append(layer_min_max[i]['min'])
+        max_values.append(layer_min_max[i]['max'])
+
+    # Plotting the vector
+    plt.plot(keys, max_values, marker='o')  # marker='o' adds dots at data points
+
+    # Adding labels and title (optional)
+    plt.yscale('log')
+    plt.xticks(rotation=90)
+    plt.xlabel('Layer')
+    plt.ylabel('Value')
+    plt.title('Basic Plot of a Vector')
+
+    # Show grid (optional)
+    plt.grid(True)
+
+    # Save and/or show the plot
+    if mode=='s' or mode=='sv':
+        if filepath=='0':
+            BASE_PATH, _, _, _, _ = path_definition()
+            parent_name = model_name[:3]
+            short_name = model_name[:-10]
+            plt.savefig(f"{BASE_PATH}/Docs_Reports/AnalysisPlots/{parent_name}/{short_name}_activation_range.png")
+        else:
+            plt.savefig(filepath)
+    if mode=='v' or mode=='sv':
+        plt.show()
+
+
 def wt_dist_plots(model, model_name, mode='sv', filepath='0'):
     # s: save
     # v: verbose
@@ -482,19 +527,7 @@ def activation_range_search(sampled_files, model, model_name, mode='sv', filepat
         for layer_name, stats in layer_min_max.items():
             print(f"{layer_name}: min = {stats['min']:.4f}, max = {stats['max']:.4f}")
 
-def save_range(min_in, max_in, model_name, layer_name):
-    BASE_PATH, PATH_DATASET, PATH_RAWDATA, PATH_JOINEDDATA, PATH_SAVEDMODELS = path_definition()
-    filepath = f'{BASE_PATH}/Docs_Reports/Quant/activation_range_{model_name}.json'
-    try:
-        with open(filepath, 'r') as file:
-            layer_min_max = json.load(file)
-    except:
-        layer_min_max = {}
-
-    layer_min_max[layer_name] = (min_in, max_in)
-
-    with open(filepath, 'w') as file:
-        json.dump(layer_min_max, file, indent=4)
+    return layer_min_max
 
 
 def smallest_power_of_two_to_exceed(range, next_value):
@@ -529,7 +562,7 @@ def smallest_power_of_two_to_exceed(range, next_value):
     return min(options)
 
 
-def find_hw_range(model, input_range, range_dict_path, shift_range_path):
+def hw_range_search(model, input_range, range_dict_path, shift_range_path):
     input_min = input_range[0]
     input_max = input_range[1]
     # read json
