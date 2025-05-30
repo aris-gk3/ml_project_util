@@ -64,6 +64,8 @@ def flatten_condtitional(model, name):
         model_new.add(layers.BatchNormalization())
         model_new.add(layers.Dropout(0.5))
         model_new.add(layers.Dense(1, activation='sigmoid'))
+    else:
+        return model
 
     copy_all_weights(model, model_new)
 
