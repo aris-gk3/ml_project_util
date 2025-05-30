@@ -460,14 +460,14 @@ def activation_range_search(sampled_files, model, model_name, mode='sv', filepat
             x = layer(x)
 
             if layer.name in layers_list:
-                act_min = tf.reduce_min(x).numpy()
-                act_max = tf.reduce_max(x).numpy()
+                act_min = float(tf.reduce_min(x).numpy())
+                act_max = float(tf.reduce_max(x).numpy())
 
                 if layer.name not in layer_min_max:
                     layer_min_max[layer.name] = {"min": act_min, "max": act_max}
                 else:
-                    layer_min_max[layer.name]['min'] = min(layer_min_max[layer.name]['min'], act_min)
-                    layer_min_max[layer.name]['max'] = max(layer_min_max[layer.name]['max'], act_max)
+                    layer_min_max[layer.name]['min'] = float(min(layer_min_max[layer.name]['min'], act_min))
+                    layer_min_max[layer.name]['max'] = float(max(layer_min_max[layer.name]['max'], act_max))
 
     # Save and/or print ranges
     if mode=='s' or mode=='sv':
