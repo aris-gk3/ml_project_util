@@ -4,6 +4,7 @@ import numpy as np
 import os
 import random
 import seaborn as sns
+import pandas as pd
 import matplotlib.pyplot as plt
 from tabulate import tabulate # type: ignore
 import tensorflow as tf
@@ -338,9 +339,57 @@ def wt_violin_plot():
     return 0
 
 # To-do
-def act_box_plot():
-    return 0
+def activation_box_plot(sampled_files, model, model_name, mode='sv', filepath='0'):
+    tf.config.run_functions_eagerly(True)
 
+    # Get list of layer names to analyze
+    layers_list = [layer.name for layer in model.layers if isinstance(layer, (Conv2D, Dense))]
+
+    # Collect flattened activations
+    layer_activations = {layer_name: [] for layer_name in layers_list}
+
+    for file_path in sampled_files:
+        x = load_and_preprocess_image(file_path)
+        for layer in model.layers:
+            x = layer(x)
+            if layer.name in layers_list:
+                flat_acts = tf.reshape(x, [-1]).numpy()
+                layer_activations[layer.name].append(flat_acts)
+
+    # Concatenate activations per layer
+    for layer_name in layer_activations:
+        layer_activations[layer_name] = np.concatenate(layer_activations[layer_name])
+
+    # Prepare DataFrame for plotting
+    data = []
+    for layer_name, acts in layer_activations.items():
+        if len(acts) > 10000:  # Optional downsampling for performance
+            acts = np.random.choice(acts, 10000, replace=False)
+        for val in acts:
+            data.append({"Layer": layer_name, "Activation": val})
+
+    df = pd.DataFrame(data)
+
+    # Plot box plot
+    plt.figure(figsize=(10, 8))
+    sns.boxplot(y="Layer", x="Activation", data=df)
+    plt.title("Activation Distributions per Layer (Horizontal Box Plot)")
+    plt.xlabel("Activation Value")
+    plt.ylabel("Layer")
+    plt.tight_layout()
+
+    # Save and/or show the plot
+    if mode=='s' or mode=='sv':
+        if filepath=='0':
+            BASE_PATH, _, _, _, _ = path_definition()
+            parent_name = model_name[:3]
+            short_name = model_name[:-10]
+            plt.savefig(f"{BASE_PATH}/Docs_Reports/AnalysisPlots/{parent_name}/{short_name}_activation_box.png")
+        else:
+            plt.savefig(filepath)
+    if mode=='v' or mode=='sv':
+        plt.show()
+        
 
 def wt_box_plot():
     return 0
