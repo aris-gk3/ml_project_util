@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 from tabulate import tabulate # type: ignore
 import tensorflow as tf
 from tensorflow.keras.layers import Conv2D, Dense # type: ignore
-from tensorflow.keras.applications.vgg16 import preprocess_input
+from tensorflow.keras.applications.vgg16 import preprocess_input # type: ignore
 from .path import path_definition
 from .load_preprocess import load_preprocess
 
@@ -214,6 +214,8 @@ def act_dist_plots(sampled_files, model, model_name, mode='sv', filepath='0'):
                 plt.savefig(filepath)
         if mode=='v' or mode=='sv':
             plt.show()
+        else:
+            plt.close()
 
 def wt_dist_plots(model, model_name, mode='sv', filepath='0'):
     # s: save
