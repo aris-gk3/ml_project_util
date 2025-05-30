@@ -338,7 +338,7 @@ def activation_violin_plot(sampled_files, model, model_name, mode='sv', filepath
 def wt_violin_plot():
     return 0
 
-# To-do
+
 def activation_box_plot(sampled_files, model, model_name, mode='sv', filepath='0'):
     tf.config.run_functions_eagerly(True)
 
@@ -389,7 +389,7 @@ def activation_box_plot(sampled_files, model, model_name, mode='sv', filepath='0
             plt.savefig(filepath)
     if mode=='v' or mode=='sv':
         plt.show()
-        
+
 
 def wt_box_plot():
     return 0
@@ -444,6 +444,43 @@ def wt_range_search(model, model_name, mode='sv', filepath='0'):
 
     return layer_ranges
 
+
+def activation_range_search(sampled_files, model, model_name, mode='sv', filepath='0'):
+    tf.config.run_functions_eagerly(True)
+
+    # Initialize tracking dict
+    layer_min_max = {}
+    layers_list = [layer.name for layer in model.layers if isinstance(layer, (Conv2D, Dense))]
+
+    # Process input files
+    for file_path in sampled_files:
+        x = load_and_preprocess_image(file_path)
+
+        for i, layer in enumerate(model.layers):
+            x = layer(x)
+
+            if layer.name in layers_list:
+                act_min = tf.reduce_min(x).numpy()
+                act_max = tf.reduce_max(x).numpy()
+
+                if layer.name not in layer_min_max:
+                    layer_min_max[layer.name] = {"min": act_min, "max": act_max}
+                else:
+                    layer_min_max[layer.name]['min'] = min(layer_min_max[layer.name]['min'], act_min)
+                    layer_min_max[layer.name]['max'] = max(layer_min_max[layer.name]['max'], act_max)
+
+    # Save and/or print ranges
+    if mode=='s' or mode=='sv':
+        if filepath=='0':
+            BASE_PATH, _, _, _, _ = path_definition()
+            short_name = model_name[:-10]
+            filepath = f"{BASE_PATH}/Docs_Reports/Quant/Ranges/{short_name}_activation_range.json"
+        # save to json
+        with open(filepath, 'w') as f:
+            json.dump(layer_min_max, f, indent=4)
+    if mode=='v' or mode=='sv':
+        for layer_name, stats in layer_min_max.items():
+            print(f"{layer_name}: min = {stats['min']:.4f}, max = {stats['max']:.4f}")
 
 def save_range(min_in, max_in, model_name, layer_name):
     BASE_PATH, PATH_DATASET, PATH_RAWDATA, PATH_JOINEDDATA, PATH_SAVEDMODELS = path_definition()
