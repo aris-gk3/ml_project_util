@@ -384,7 +384,6 @@ def activation_violin_plot(sampled_files, model, model_name, mode='sv', filepath
         plt.show()
 
 
-# To-do
 def wt_violin_plot(model, model_name, mode='sv', filepath='0'):
     # Initialize dictionaries
     weight_distributions = {}
@@ -414,7 +413,16 @@ def wt_violin_plot(model, model_name, mode='sv', filepath='0'):
 
     # Create violin plot
     plt.figure(figsize=(14, max(6, len(df['Layer'].unique()) * 0.4)))
-    sns.violinplot(y='Layer', x='Value', data=df, scale='width', inner='box', palette='Set2')
+    sns.violinplot(
+        y='Layer',
+        x='Value',
+        data=df,
+        density_norm='width',
+        inner='box',
+        hue='Layer',
+        palette='Set2',
+        legend=False
+        )
 
     # Style
     plt.title("Violin Plot of Weight and Bias Distributions per Layer")
@@ -491,8 +499,63 @@ def activation_box_plot(sampled_files, model, model_name, mode='sv', filepath='0
 
 
 # To-do
-def wt_box_plot():
-    return 0
+def wt_box_plot(model, model_name, mode='sv', filepath='0'):
+    # Initialize dictionaries
+    weight_distributions = {}
+    bias_distributions = {}
+
+    for layer in model.layers:
+        if hasattr(layer, "get_weights") and hasattr(layer, "set_weights"):
+            weights = layer.get_weights()
+            if weights:
+                if len(weights) >= 1:
+                    flat_weights = weights[0].flatten()
+                    weight_distributions[layer.name] = flat_weights
+                if len(weights) >= 2:
+                    flat_biases = weights[1].flatten()
+                    bias_distributions[layer.name] = flat_biases
+    # Prepare data for seaborn
+    data = []
+    def downsample(values, max_len=1000):
+        values = list(values)  # Convert numpy array to list
+        return random.sample(values, min(len(values), max_len))
+
+    # Prepare data
+    data = []
+
+    for layer_name, weights in weight_distributions.items():
+        ws = downsample(weights)
+        data.extend([(f'{layer_name} - weight', w) for w in ws])
+
+    for layer_name, biases in bias_distributions.items():
+        bs = downsample(biases)
+        data.extend([(f'{layer_name} - bias', b) for b in bs])
+
+    # Convert to DataFrame
+    df = pd.DataFrame(data, columns=['Layer', 'Value'])
+
+    # Plot
+    plt.figure(figsize=(14, max(6, len(df['Layer'].unique()) * 0.4)))
+    ax = sns.boxplot(y='Layer', x='Value', data=df, hue='Layer', palette='Set3', fliersize=2)
+    ax.get_legend().remove()  # Remove redundant legend
+
+    # Style
+    plt.title("Boxplot of Weight and Bias Distributions per Layer")
+    plt.xlabel("Value")
+    plt.ylabel("Layer")
+    plt.grid(True, axis='x', linestyle='--', alpha=0.5)
+    plt.tight_layout()
+    if mode=='s' or mode=='sv':
+        if filepath=='0':
+            BASE_PATH, _, _, _, _ = path_definition()
+            parent_name = model_name[:3]
+            short_name = model_name[:-10]
+            plt.savefig(f"{BASE_PATH}/Docs_Reports/AnalysisPlots/{parent_name}/{short_name}_wtbias_box.png")
+        else:
+            plt.savefig(filepath)
+        print(f'Saved box plot in {filepath}')
+    if mode=='v' or mode=='sv':
+        plt.show()
 
 
 ### Quantization utilities
