@@ -498,7 +498,6 @@ def activation_box_plot(sampled_files, model, model_name, mode='sv', filepath='0
         plt.show()
 
 
-# To-do
 def wt_box_plot(model, model_name, mode='sv', filepath='0'):
     # Initialize dictionaries
     weight_distributions = {}
@@ -554,6 +553,64 @@ def wt_box_plot(model, model_name, mode='sv', filepath='0'):
             parent_name = model_name[:3]
             short_name = model_name[:-10]
             plt.savefig(f"{BASE_PATH}/Docs_Reports/AnalysisPlots/{parent_name}/{short_name}_wtbias_box.png")
+        else:
+            plt.savefig(filepath)
+        print(f'Saved box plot in {filepath}')
+    if mode=='v' or mode=='sv':
+        plt.show()
+
+
+# To-do
+def wt_histogram_ranges(model, model_name, mode='sv', filepath='0'):
+    layer_ranges = wt_range_search(model, model_name)
+
+
+    # Prepare data for seaborn
+    data = []
+    def downsample(values, max_len=1000):
+        values = list(values)  # Convert numpy array to list
+        return random.sample(values, min(len(values), max_len))
+
+    # Prepare data
+    layers = []
+    weight_mins = []
+    weight_maxs = []
+    bias_mins = []
+    bias_maxs = []
+
+    for layer_name, data in layer_ranges.items():
+        layers.append(layer_name)
+        weight_mins.append(data.get("weight", {}).get("min", np.nan))
+        weight_maxs.append(data.get("weight", {}).get("max", np.nan))
+        bias_mins.append(data.get("bias", {}).get("min", np.nan))
+        bias_maxs.append(data.get("bias", {}).get("max", np.nan))
+
+    indices = np.arange(len(layers))
+    bar_height = 0.35
+
+    plt.figure(figsize=(12, 0.6 * len(layers)))
+
+    # Plot weight ranges
+    plt.barh(indices + bar_height/2, np.array(weight_maxs) - np.array(weight_mins),
+            left=weight_mins, height=bar_height, label='Weight Range', color='skyblue', edgecolor='black')
+
+    # Plot bias ranges
+    plt.barh(indices - bar_height/2, np.array(bias_maxs) - np.array(bias_mins),
+            left=bias_mins, height=bar_height, label='Bias Range', color='salmon', edgecolor='black')
+
+    # Labels and style
+    plt.yticks(indices, layers)
+    plt.xlabel("Value Range")
+    plt.title("Weight and Bias Ranges per Layer")
+    plt.grid(True, axis='x', linestyle='--', alpha=0.5)
+    plt.legend(loc='best')
+    plt.tight_layout()
+    if mode=='s' or mode=='sv':
+        if filepath=='0':
+            BASE_PATH, _, _, _, _ = path_definition()
+            parent_name = model_name[:3]
+            short_name = model_name[:-10]
+            plt.savefig(f"{BASE_PATH}/Docs_Reports/AnalysisPlots/{parent_name}/{short_name}_wtbias_hist.png")
         else:
             plt.savefig(filepath)
         print(f'Saved box plot in {filepath}')
