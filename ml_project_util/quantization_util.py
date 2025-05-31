@@ -562,7 +562,7 @@ def wt_box_plot(model, model_name, mode='sv', filepath='0'):
 
 # To-do
 def wt_histogram_ranges(model, model_name, mode='sv', filepath='0'):
-    layer_ranges = wt_range_search(model, model_name)
+    layer_ranges = wt_range_search(model, model_name, mode='0')
 
 
     # Prepare data for seaborn
