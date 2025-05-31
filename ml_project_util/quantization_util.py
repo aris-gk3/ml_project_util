@@ -214,6 +214,7 @@ def activation_dist_plots(sampled_files, model, model_name, mode='sv', filepath=
                 plt.savefig(f"{BASE_PATH}/Docs_Reports/AnalysisPlots/{parent_name}/{short_name}_layer{i:02d}_activation.png")
             else:
                 plt.savefig(filepath)
+            print(f'Saved plot in {filepath}')
         if mode=='v' or mode=='sv':
             plt.show()
         else:
@@ -261,6 +262,7 @@ def activation_range_plot(sampled_files, model, model_name, mode='sv', filepath=
             plt.savefig(f"{BASE_PATH}/Docs_Reports/AnalysisPlots/{parent_name}/{short_name}_activation_range.png")
         else:
             plt.savefig(filepath)
+        print(f'Saved plot in {filepath}')
     if mode=='v' or mode=='sv':
         plt.show()
 
@@ -301,6 +303,7 @@ def wt_dist_plots(model, model_name, mode='sv', filepath='0'):
                 plt.savefig(f"{BASE_PATH}/Docs_Reports/AnalysisPlots/{parent_name}/{short_name}_layer{i:02d}_wt.png")
             else:
                 plt.savefig(filepath)
+            print(f'Saved weight plot in {filepath}')
         if mode=='v' or mode=='sv':
             plt.show()
         plt.close()
@@ -319,6 +322,7 @@ def wt_dist_plots(model, model_name, mode='sv', filepath='0'):
                 plt.savefig(f"{BASE_PATH}/Docs_Reports/AnalysisPlots/{parent_name}/{short_name}_layer{i:02d}_bias.png")
             else:
                 plt.savefig(filepath)
+            print(f'Saved bias plot in {filepath}')
         if mode=='v' or mode=='sv':
             plt.show()
         plt.close()
@@ -375,13 +379,62 @@ def activation_violin_plot(sampled_files, model, model_name, mode='sv', filepath
             plt.savefig(f"{BASE_PATH}/Docs_Reports/AnalysisPlots/{parent_name}/{short_name}_activation_violin.png")
         else:
             plt.savefig(filepath)
+        print(f'Saved plot in {filepath}')
     if mode=='v' or mode=='sv':
         plt.show()
 
 
 # To-do
-def wt_violin_plot():
-    return 0
+def wt_violin_plot(model, model_name, mode='sv', filepath='0'):
+    # Initialize dictionaries
+    weight_distributions = {}
+    bias_distributions = {}
+
+    for layer in model.layers:
+        if hasattr(layer, "get_weights") and hasattr(layer, "set_weights"):
+            weights = layer.get_weights()
+            if weights:
+                if len(weights) >= 1:
+                    flat_weights = weights[0].flatten()
+                    weight_distributions[layer.name] = flat_weights
+                if len(weights) >= 2:
+                    flat_biases = weights[1].flatten()
+                    bias_distributions[layer.name] = flat_biases
+    # Prepare data for seaborn
+    data = []
+
+    for layer_name, weights in weight_distributions.items():
+        data.extend([(layer_name + ' - weight', w) for w in weights])
+
+    for layer_name, biases in bias_distributions.items():
+        data.extend([(layer_name + ' - bias', b) for b in biases])
+
+    # Convert to DataFrame
+    df = pd.DataFrame(data, columns=['Layer', 'Value'])
+
+    # Create violin plot
+    plt.figure(figsize=(14, max(6, len(df['Layer'].unique()) * 0.4)))
+    sns.violinplot(y='Layer', x='Value', data=df, scale='width', inner='box', palette='Set2')
+
+    # Style
+    plt.title("Violin Plot of Weight and Bias Distributions per Layer")
+    plt.xlabel("Value")
+    plt.ylabel("Layer")
+    plt.grid(True, axis='x', linestyle='--', alpha=0.5)
+    plt.tight_layout()
+
+    if mode=='s' or mode=='sv':
+        if filepath=='0':
+            BASE_PATH, _, _, _, _ = path_definition()
+            parent_name = model_name[:3]
+            short_name = model_name[:-10]
+            plt.savefig(f"{BASE_PATH}/Docs_Reports/AnalysisPlots/{parent_name}/{short_name}_wtbias_violin.png")
+        else:
+            plt.savefig(filepath)
+        print(f'Saved violin plot in {filepath}')
+    if mode=='v' or mode=='sv':
+        plt.show()
+    plt.close()
 
 
 def activation_box_plot(sampled_files, model, model_name, mode='sv', filepath='0'):
@@ -432,16 +485,19 @@ def activation_box_plot(sampled_files, model, model_name, mode='sv', filepath='0
             plt.savefig(f"{BASE_PATH}/Docs_Reports/AnalysisPlots/{parent_name}/{short_name}_activation_box.png")
         else:
             plt.savefig(filepath)
+        print(f'Saved plot in {filepath}')
     if mode=='v' or mode=='sv':
         plt.show()
 
 
+# To-do
 def wt_box_plot():
     return 0
 
 
 ### Quantization utilities
 
+# Verify
 def wt_range_search(model, model_name, mode='sv', filepath='0'):
     # s: save
     # v: verbose
@@ -562,6 +618,7 @@ def smallest_power_of_two_to_exceed(range, next_value):
     return min(options)
 
 
+# To-do
 def hw_range_search(model, input_range, range_dict_path, shift_range_path):
     input_min = input_range[0]
     input_max = input_range[1]
