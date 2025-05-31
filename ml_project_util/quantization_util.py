@@ -537,7 +537,10 @@ def wt_box_plot(model, model_name, mode='sv', filepath='0'):
     # Plot
     plt.figure(figsize=(14, max(6, len(df['Layer'].unique()) * 0.4)))
     ax = sns.boxplot(y='Layer', x='Value', data=df, hue='Layer', palette='Set3', fliersize=2)
-    ax.get_legend().remove()  # Remove redundant legend
+
+    legend = ax.get_legend()
+    if legend:
+        legend.remove()
 
     # Style
     plt.title("Boxplot of Weight and Bias Distributions per Layer")
