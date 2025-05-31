@@ -211,10 +211,12 @@ def activation_dist_plots(sampled_files, model, model_name, mode='sv', filepath=
                 BASE_PATH, _, _, _, _ = path_definition()
                 parent_name = model_name[:3]
                 short_name = model_name[:-10]
-                plt.savefig(f"{BASE_PATH}/Docs_Reports/AnalysisPlots/{parent_name}/{short_name}_layer{i:02d}_activation.png")
+                tmp_filepath = f"{BASE_PATH}/Docs_Reports/AnalysisPlots/{parent_name}/{short_name}_layer{i:02d}_activation.png"
+                plt.savefig(tmp_filepath)
+                print(f'Saved plot in {tmp_filepath}')
             else:
                 plt.savefig(filepath)
-            print(f'Saved plot in {filepath}')
+                print(f'Saved plot in {filepath}')
         if mode=='v' or mode=='sv':
             plt.show()
         else:
@@ -259,7 +261,8 @@ def activation_range_plot(sampled_files, model, model_name, mode='sv', filepath=
             BASE_PATH, _, _, _, _ = path_definition()
             parent_name = model_name[:3]
             short_name = model_name[:-10]
-            plt.savefig(f"{BASE_PATH}/Docs_Reports/AnalysisPlots/{parent_name}/{short_name}_activation_range.png")
+            filepath = f"{BASE_PATH}/Docs_Reports/AnalysisPlots/{parent_name}/{short_name}_activation_range.png"
+            plt.savefig(filepath)
         else:
             plt.savefig(filepath)
         print(f'Saved plot in {filepath}')
@@ -319,10 +322,12 @@ def wt_dist_plots(model, model_name, mode='sv', filepath='0'):
         plt.tight_layout()
         if mode=='s' or mode=='sv':
             if filepath=='0':
-                plt.savefig(f"{BASE_PATH}/Docs_Reports/AnalysisPlots/{parent_name}/{short_name}_layer{i:02d}_bias.png")
+                tmp_filepath = f"{BASE_PATH}/Docs_Reports/AnalysisPlots/{parent_name}/{short_name}_layer{i:02d}_bias.png"
+                plt.savefig(tmp_filepath)
+                print(f'Saved bias plot in {tmp_filepath}')
             else:
                 plt.savefig(filepath)
-            print(f'Saved bias plot in {filepath}')
+                print(f'Saved bias plot in {filepath}')
         if mode=='v' or mode=='sv':
             plt.show()
         plt.close()
@@ -376,7 +381,8 @@ def activation_violin_plot(sampled_files, model, model_name, mode='sv', filepath
             BASE_PATH, _, _, _, _ = path_definition()
             parent_name = model_name[:3]
             short_name = model_name[:-10]
-            plt.savefig(f"{BASE_PATH}/Docs_Reports/AnalysisPlots/{parent_name}/{short_name}_activation_violin.png")
+            filepath = f"{BASE_PATH}/Docs_Reports/AnalysisPlots/{parent_name}/{short_name}_activation_violin.png"
+            plt.savefig(filepath)
         else:
             plt.savefig(filepath)
         print(f'Saved plot in {filepath}')
@@ -436,7 +442,8 @@ def wt_violin_plot(model, model_name, mode='sv', filepath='0'):
             BASE_PATH, _, _, _, _ = path_definition()
             parent_name = model_name[:3]
             short_name = model_name[:-10]
-            plt.savefig(f"{BASE_PATH}/Docs_Reports/AnalysisPlots/{parent_name}/{short_name}_wtbias_violin.png")
+            filepath = f"{BASE_PATH}/Docs_Reports/AnalysisPlots/{parent_name}/{short_name}_wtbias_violin.png"
+            plt.savefig(filepath)
         else:
             plt.savefig(filepath)
         print(f'Saved violin plot in {filepath}')
@@ -490,7 +497,8 @@ def activation_box_plot(sampled_files, model, model_name, mode='sv', filepath='0
             BASE_PATH, _, _, _, _ = path_definition()
             parent_name = model_name[:3]
             short_name = model_name[:-10]
-            plt.savefig(f"{BASE_PATH}/Docs_Reports/AnalysisPlots/{parent_name}/{short_name}_activation_box.png")
+            filepath = f"{BASE_PATH}/Docs_Reports/AnalysisPlots/{parent_name}/{short_name}_activation_box.png"
+            plt.savefig(filepath)
         else:
             plt.savefig(filepath)
         print(f'Saved plot in {filepath}')
@@ -552,7 +560,8 @@ def wt_box_plot(model, model_name, mode='sv', filepath='0'):
             BASE_PATH, _, _, _, _ = path_definition()
             parent_name = model_name[:3]
             short_name = model_name[:-10]
-            plt.savefig(f"{BASE_PATH}/Docs_Reports/AnalysisPlots/{parent_name}/{short_name}_wtbias_box.png")
+            filepath = f"{BASE_PATH}/Docs_Reports/AnalysisPlots/{parent_name}/{short_name}_wtbias_box.png"
+            plt.savefig(filepath)
         else:
             plt.savefig(filepath)
         print(f'Saved box plot in {filepath}')
@@ -560,7 +569,6 @@ def wt_box_plot(model, model_name, mode='sv', filepath='0'):
         plt.show()
 
 
-# To-do
 def wt_histogram_ranges(model, model_name, mode='sv', filepath='0'):
     layer_ranges = wt_range_search(model, model_name, mode='0')
 
@@ -616,7 +624,8 @@ def wt_histogram_ranges(model, model_name, mode='sv', filepath='0'):
             BASE_PATH, _, _, _, _ = path_definition()
             parent_name = model_name[:3]
             short_name = model_name[:-10]
-            plt.savefig(f"{BASE_PATH}/Docs_Reports/AnalysisPlots/{parent_name}/{short_name}_wtbias_hist.png")
+            filepath = f"{BASE_PATH}/Docs_Reports/AnalysisPlots/{parent_name}/{short_name}_wtbias_hist.png"
+            plt.savefig(filepath)
         else:
             plt.savefig(filepath)
         print(f'Saved box plot in {filepath}')
