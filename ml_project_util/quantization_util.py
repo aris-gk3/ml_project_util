@@ -590,6 +590,12 @@ def wt_histogram_ranges(model, model_name, mode='sv', filepath='0'):
 
     plt.figure(figsize=(12, 0.6 * len(layers)))
 
+    layers = layers[::-1]
+    weight_mins = weight_mins[::-1]
+    weight_maxs = weight_maxs[::-1]
+    bias_mins = bias_mins[::-1]
+    bias_maxs = bias_maxs[::-1]
+
     # Plot weight ranges
     plt.barh(indices + bar_height/2, np.array(weight_maxs) - np.array(weight_mins),
             left=weight_mins, height=bar_height, label='Weight Range', color='skyblue', edgecolor='black')
