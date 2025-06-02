@@ -9,9 +9,11 @@ import matplotlib.pyplot as plt
 from tabulate import tabulate # type: ignore
 import tensorflow as tf
 from tensorflow.keras.layers import Conv2D, Dense # type: ignore
+from tensorflow.keras.models import Sequential # type: ignore
 from tensorflow.keras.applications.vgg16 import preprocess_input # type: ignore
 from .path import path_definition
 from .load_preprocess import load_preprocess
+from .model_evaluation import model_evaluation_precise
 
 
 ### Info & visualization for quantization
@@ -792,3 +794,154 @@ def hw_range_search(model, input_range, range_dict_path, shift_range_path):
     }
     with open(shift_range_path, "w") as f:
         json.dump(hw_range_serializable, f, indent=4)
+
+
+def gen_sample_paths(path_dataset='0', num_samples=40):
+    import os
+    import random
+
+    if(path_dataset=='0'):
+        BASE_PATH, PATH_DATASET, PATH_RAWDATA, PATH_JOINEDDATA, PATH_SAVEDMODELS = path_definition()
+        directory = PATH_DATASET
+    else:
+        directory = path_dataset
+    class_path = [os.path.join(PATH_DATASET, d) for d in os.listdir(directory) if os.path.isdir(os.path.join(directory, d))]
+
+    img_size = (224, 224, 3)
+    num_samples = num_samples
+    valid_extensions = ('.png', '.jpg', '.jpeg')
+
+    # Initialize list
+    all_files = []
+
+    # Loop through both directories
+    for img_dir in class_path:
+        for f in os.listdir(img_dir):
+            full_path = os.path.join(img_dir, f)
+            if os.path.isfile(full_path) and f.lower().endswith(valid_extensions):
+                all_files.append(full_path)
+            
+    random.seed(99)  # For reproducibility
+    sampled_files = random.sample(all_files, min(num_samples, len(all_files)))
+
+    return sampled_files
+
+
+### Quantize models & evaluate
+
+def quant_activations(model, model_name, input_shape=(224,224,3), range_path='0', mode='hw'):
+    # 'sw' means quantization is run based on arbitrary symmetric ranges of max values
+    # 'hw' means hw efficient quantization is run, so that scales from previous to next layer are only calculated based on shifting bits
+
+    # Show mode message
+    if(mode=='sw'):
+        print('Quantization on arbitrary symmetric ranges is applied.')
+    elif(mode=='hw'):
+        print('Quantization on symmetric ranges that enable shifting on interlayer scaling is applied.')
+
+    # Read appropriate ranges
+    if(range_path == '0'):
+        BASE_PATH, _, _, _, _ = path_definition()
+        parent_name = model_name[:3]
+        short_name = model_name[:-10]
+        filepath = f'{BASE_PATH}/Docs_Reports/Quant/Ranges/{short_name}_activation_{mode}_range.json'
+    else:
+        filepath = range_path
+
+    try:
+        with open(filepath, 'r') as f:
+            range_dict = json.load(f)
+        print(f'{mode} quantization range has been read from {filepath}.')
+    except:
+        print(f'Quantization range not found in {filepath}, recalculating.')
+        # calculate and save json with ranges
+        if(mode=='hw'):
+            pass
+            # function that calculates hw range
+        else:
+            sampled_files = gen_sample_paths()
+            activation_range_search(sampled_files, model, model_name)
+        # save json
+        try:
+            with open(filepath, 'w') as f:
+                range_dict = json.dump(f, indent=4)
+            print(f'Quantization range saved in {filepath}!')
+        except:
+            print(f'Quantization range could not be saved in {filepath}!')
+
+    # quant model and evaluate
+    quant_activation_model = clone_model_with_fake_quant(model, input_shape, range_dict)
+    quant_activation_model.compile(optimizer='adam', loss='sparse_categorical_crossentropy', metrics=['accuracy'])
+    model_evaluation_precise(quant_activation_model)
+
+
+### Model transformation utilities
+
+class SymmetricFakeQuantLayer(tf.keras.layers.Layer):
+    def __init__(self, max_abs_val=6.0, num_bits=8, narrow_range=True, **kwargs):
+        super().__init__(**kwargs)
+        self.max_abs_val = max_abs_val
+        self.min_val = -max_abs_val
+        self.max_val = max_abs_val
+        self.num_bits = num_bits
+        self.narrow_range = narrow_range  # Set to True for signed int8 [-127, 127]
+
+    def call(self, inputs):
+        return tf.quantization.fake_quant_with_min_max_vars(
+            inputs,
+            min=self.min_val,
+            max=self.max_val,
+            num_bits=self.num_bits,
+            narrow_range=self.narrow_range
+        )
+
+def clone_model_with_fake_quant(original_model, input_shape, range_dict, num_bits=8):
+    new_model = Sequential()
+    layer_mapping = []
+    quant_layers_list = list(range_dict.keys())
+
+    # Add input layer explicitly
+    new_model.add(tf.keras.Input(shape=input_shape))
+
+    quant_layer = 0
+    for layer in original_model.layers:
+        config = layer.get_config()
+        cloned_layer = layer.__class__.from_config(config)
+        # Insert fake quant after Conv2D or Dense
+        if isinstance(cloned_layer, (Conv2D, Dense)):
+            tmp_min = range_dict[quant_layers_list[quant_layer]]['min']
+            tmp_max = range_dict[quant_layers_list[quant_layer]]['max']
+            abs_max = abs(tmp_min) if abs(tmp_min)>tmp_max else tmp_max
+            #new_model.add(FakeQuantLayer(min_val=tmp_min, max_val=tmp_max))
+            new_model.add(SymmetricFakeQuantLayer(max_abs_val=abs_max, num_bits=num_bits))
+            quant_layer = quant_layer + 1
+        # Clone layer from config
+        new_model.add(cloned_layer)
+        layer_mapping.append((layer, cloned_layer))
+
+    # Build model by running dummy data through it
+    dummy_input = tf.random.uniform((1, *input_shape))
+    new_model(dummy_input)
+
+    # Copy weights from original layers to cloned layers
+    for orig_layer, cloned_layer in layer_mapping:
+        if orig_layer.weights and cloned_layer.weights:
+            try:
+                cloned_layer.set_weights(orig_layer.get_weights())
+            except ValueError as e:
+                print(f"Skipping weights for layer {orig_layer.name} due to mismatch: {e}")
+
+    new_model.build(input_shape=(None, *input_shape))  # Step 2
+
+    dummy_input = tf.random.uniform((1, *input_shape))  # Step 3
+    new_model(dummy_input)
+
+    print("New model input shape:", new_model.input_shape)  # Step 4
+
+    for orig_layer, cloned_layer in layer_mapping:
+        try:
+            cloned_layer.set_weights(orig_layer.get_weights())
+        except Exception as e:
+            print(f"Skipping weights for {orig_layer.name}: {e}")
+
+    return new_model
