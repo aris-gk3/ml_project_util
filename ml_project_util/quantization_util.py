@@ -838,6 +838,7 @@ def gen_sample_paths(path_dataset='0', num_samples=40):
 
 ### Quantize models & evaluate
 
+# To-do
 def quant_activations(model, model_name, input_shape=(224,224,3), range_path='0', mode='hw'):
     # 'sw' means quantization is run based on arbitrary symmetric ranges of max values
     # 'hw' means hw efficient quantization is run, so that scales from previous to next layer are only calculated based on shifting bits
@@ -851,7 +852,6 @@ def quant_activations(model, model_name, input_shape=(224,224,3), range_path='0'
     # Read appropriate ranges
     if(range_path == '0'):
         BASE_PATH, _, _, _, _ = path_definition()
-        parent_name = model_name[:3]
         short_name = model_name[:-10]
         filepath = f'{BASE_PATH}/Docs_Reports/Quant/Ranges/{short_name}_activation_{mode}_range.json'
     else:
@@ -860,7 +860,7 @@ def quant_activations(model, model_name, input_shape=(224,224,3), range_path='0'
     try:
         with open(filepath, 'r') as f:
             range_dict = json.load(f)
-        print(f'{mode} quantization range has been read from {filepath}.')
+        print(f'{mode} activation quantization range has been read from {filepath}.')
     except:
         print(f'Quantization range not found in {filepath}, recalculating.')
         # calculate and save json with ranges
@@ -884,7 +884,75 @@ def quant_activations(model, model_name, input_shape=(224,224,3), range_path='0'
     model_evaluation_precise(quant_activation_model)
 
 
+def quant_weights(model, model_name, range_path='0', quant='symmetric', mode='eval', batch_len=157):
+    # quant: returns model with quantized weights
+    # eval: evaluates model with quantized weights & returns model with quantized weights
+    if(mode!='symmetric'):
+        print('No asymmetric quantization developed yet!')
+        return 1
+    
+    # Get range from json or search for it
+    if(range_path=='0'):
+        BASE_PATH, _, _, _, _ = path_definition()
+        short_name = model_name[:-10]
+        filepath = f'{BASE_PATH}/Docs_Reports/Quant/Ranges/{short_name}_wt_range.json'
+        filepath = f''
+    else:
+        filepath = range_path
+    try:
+        with open(filepath, 'r') as f:
+            range_dict = json.load(f)
+        print(f'Weight quantization range has been read from {filepath}.')
+    except:
+        print(f'Weight quantization not found in {filepath}, searching now...')
+        weight_ranges = wt_range_search(model, model_name)
+
+    # Clone weights to new model
+    for layer in model.layers:
+        if hasattr(layer, "get_weights") and hasattr(layer, "set_weights"):
+            weights = layer.get_weights()
+            if weights and layer.name in weight_ranges:
+                layer_ranges = weight_ranges[layer.name]
+                new_weights = [
+                    quantize_tensor_symmetric(w, w_range)
+                    for w, w_range in zip(weights, layer_ranges)
+                ]
+                layer.set_weights(new_weights)
+
+    # evaluate new model
+    if(mode=='eval'):
+       model_evaluation_precise(model, batch_len=batch_len)
+
+    return model
+
+
+
 ### Model transformation utilities
+
+def quantize_tensor_symmetric(w, w_range, num_bits=8):
+    qmin = -(2 ** (num_bits - 1) - 1)  # -127 for int8
+    qmax = (2 ** (num_bits - 1) - 1)   # +127 for int8
+
+    w_min = w_range["min"]
+    w_max = w_range["max"]
+
+    # Use symmetric range centered at 0
+    max_abs = max(abs(w_min), abs(w_max))
+
+    if max_abs == 0:
+        return np.zeros_like(w)
+
+    scale = max_abs / qmax  # ensure 0 maps to 0, and max_abs maps to ±127
+
+    # Quantize
+    q = np.round(w / scale)
+    q = np.clip(q, qmin, qmax)
+
+    # Dequantize
+    w_dequant = q * scale
+
+    return w_dequant
+
 
 class SymmetricFakeQuantLayer(tf.keras.layers.Layer):
     def __init__(self, max_abs_val=6.0, num_bits=8, narrow_range=True, **kwargs):
