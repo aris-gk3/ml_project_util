@@ -719,6 +719,7 @@ def activation_range_search(sampled_files, model, model_name, mode='sv', filepat
         # save to json
         with open(filepath, 'w') as f:
             json.dump(layer_min_max, f, indent=4)
+        print(f'Saved activation ranges in {filepath}')
     if mode=='v' or mode=='sv':
         for layer_name, stats in layer_min_max.items():
             print(f"{layer_name}: min = {stats['min']:.4f}, max = {stats['max']:.4f}")
