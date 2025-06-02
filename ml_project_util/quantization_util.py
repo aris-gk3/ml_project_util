@@ -798,6 +798,20 @@ def smallest_power_of_two_to_exceed(range, next_value):
 
 # To-do
 def hw_range_search(model, input_range, range_dict_path, shift_range_path, force=0):
+    # read activation range and wt range if they exist, otherwise find, print and save them
+
+    # save hw weight & find weight scales
+
+    # find scales of hw wt (same as non hw)
+
+    # step by step for each layer find a) activation scales b) activation hw range c) shift per layer
+
+    # see what to do with bias of weights, probably needs float scale, but this is okay since it happens offline (not at inference)
+
+    # save range, scale, shift json
+    return 0
+
+def hw_range_search_old(model, input_range, range_dict_path, shift_range_path, force=0):
     input_min = input_range[0]
     input_max = input_range[1]
     # read json
