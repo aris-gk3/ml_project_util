@@ -145,7 +145,7 @@ def wt_bias_statistics_md(model):
     return 0
 
 
-def activation_dist_plots(sampled_files, model, model_name, mode='sv', filepath='0'):
+def activation_dist_plots(sampled_files, model, model_name, mode='sv', filepath='0', force=0):
     # s: save
     # v: verbose
     # sv: save & verbose
@@ -214,18 +214,20 @@ def activation_dist_plots(sampled_files, model, model_name, mode='sv', filepath=
                 parent_name = model_name[:3]
                 short_name = model_name[:-10]
                 tmp_filepath = f"{BASE_PATH}/Docs_Reports/AnalysisPlots/{parent_name}/{short_name}_layer{i:02d}_activation.png"
+            else:
+                tmp_filepath = f"{filepath}/{short_name}_layer{i:02d}_activation.png"
+            if not os.path.exists(tmp_filepath) or force==1:
                 plt.savefig(tmp_filepath)
                 print(f'Saved plot in {tmp_filepath}')
             else:
-                plt.savefig(filepath)
-                print(f'Saved plot in {filepath}')
+                print(f"File already exists in {tmp_filepath}. Change \"force\" arguement to overwrite.")
         if mode=='v' or mode=='sv':
             plt.show()
         else:
             plt.close()
 
 
-def activation_range_plot(sampled_files, model, model_name, mode='sv', filepath='0'):
+def activation_range_plot(sampled_files, model, model_name, mode='sv', filepath='0', force=0):
     try:
         BASE_PATH, _, _, _, _ = path_definition()
         short_name = model_name[:-10]
@@ -265,14 +267,16 @@ def activation_range_plot(sampled_files, model, model_name, mode='sv', filepath=
             short_name = model_name[:-10]
             filepath = f"{BASE_PATH}/Docs_Reports/AnalysisPlots/{parent_name}/{short_name}_activation_range.png"
             plt.savefig(filepath)
-        else:
+        if not os.path.exists(filepath) or force==1:
             plt.savefig(filepath)
-        print(f'Saved plot in {filepath}')
+            print(f'Saved plot in {filepath}')
+        else:
+            print(f"File already exists in {filepath}. Change \"force\" arguement to overwrite.")
     if mode=='v' or mode=='sv':
         plt.show()
 
 
-def wt_dist_plots(model, model_name, mode='sv', filepath='0'):
+def wt_dist_plots(model, model_name, mode='sv', filepath='0', force=0):
     # s: save
     # v: verbose
     # sv: save & verbose
@@ -323,19 +327,23 @@ def wt_dist_plots(model, model_name, mode='sv', filepath='0'):
         plt.grid(True)
         plt.tight_layout()
         if mode=='s' or mode=='sv':
+            # Find correct file path
             if filepath=='0':
                 tmp_filepath = f"{BASE_PATH}/Docs_Reports/AnalysisPlots/{parent_name}/{short_name}_layer{i:02d}_bias.png"
-                plt.savefig(tmp_filepath)
-                print(f'Saved bias plot in {tmp_filepath}')
             else:
-                plt.savefig(filepath)
-                print(f'Saved bias plot in {filepath}')
+                tmp_filepath = f"{filepath}/{short_name}_layer{i:02d}_bias.png"
+            # Save if it doesn't exist or force
+            if not os.path.exists(tmp_filepath) or force==1:
+                plt.savefig(tmp_filepath)
+                print(f'Saved plot in {tmp_filepath}')
+            else:
+                print(f"File already exists in {tmp_filepath}. Change \"force\" arguement to overwrite.")
         if mode=='v' or mode=='sv':
             plt.show()
         plt.close()
 
 
-def activation_violin_plot(sampled_files, model, model_name, mode='sv', filepath='0'):
+def activation_violin_plot(sampled_files, model, model_name, mode='sv', filepath='0', force=0):
     tf.config.run_functions_eagerly(True)
 
     layers_list = [layer.name for layer in model.layers if isinstance(layer, (Conv2D, Dense))]
@@ -379,20 +387,23 @@ def activation_violin_plot(sampled_files, model, model_name, mode='sv', filepath
 
     # Save and/or show the plot
     if mode=='s' or mode=='sv':
+        # Find correct file path
         if filepath=='0':
             BASE_PATH, _, _, _, _ = path_definition()
             parent_name = model_name[:3]
             short_name = model_name[:-10]
             filepath = f"{BASE_PATH}/Docs_Reports/AnalysisPlots/{parent_name}/{short_name}_activation_violin.png"
+        # Save if it doesn't exist or force
+        if not os.path.exists(filepath) or force==1:
             plt.savefig(filepath)
+            print(f'Saved plot in {filepath}')
         else:
-            plt.savefig(filepath)
-        print(f'Saved plot in {filepath}')
+            print(f"File already exists in {filepath}. Change \"force\" arguement to overwrite.")
     if mode=='v' or mode=='sv':
         plt.show()
 
 
-def wt_violin_plot(model, model_name, mode='sv', filepath='0'):
+def wt_violin_plot(model, model_name, mode='sv', filepath='0', force=0):
     # Initialize dictionaries
     weight_distributions = {}
     bias_distributions = {}
@@ -440,21 +451,24 @@ def wt_violin_plot(model, model_name, mode='sv', filepath='0'):
     plt.tight_layout()
 
     if mode=='s' or mode=='sv':
+        # Find correct file path
         if filepath=='0':
             BASE_PATH, _, _, _, _ = path_definition()
             parent_name = model_name[:3]
             short_name = model_name[:-10]
             filepath = f"{BASE_PATH}/Docs_Reports/AnalysisPlots/{parent_name}/{short_name}_wtbias_violin.png"
+        # Save if it doesn't exist or force
+        if not os.path.exists(filepath) or force==1:
             plt.savefig(filepath)
+            print(f'Saved plot in {filepath}')
         else:
-            plt.savefig(filepath)
-        print(f'Saved violin plot in {filepath}')
+            print(f"File already exists in {filepath}. Change \"force\" arguement to overwrite.")
     if mode=='v' or mode=='sv':
         plt.show()
     plt.close()
 
 
-def activation_box_plot(sampled_files, model, model_name, mode='sv', filepath='0'):
+def activation_box_plot(sampled_files, model, model_name, mode='sv', filepath='0', force=0):
     tf.config.run_functions_eagerly(True)
 
     # Get list of layer names to analyze
@@ -495,20 +509,23 @@ def activation_box_plot(sampled_files, model, model_name, mode='sv', filepath='0
 
     # Save and/or show the plot
     if mode=='s' or mode=='sv':
+        # Find correct file path
         if filepath=='0':
             BASE_PATH, _, _, _, _ = path_definition()
             parent_name = model_name[:3]
             short_name = model_name[:-10]
             filepath = f"{BASE_PATH}/Docs_Reports/AnalysisPlots/{parent_name}/{short_name}_activation_box.png"
+        # Save if it doesn't exist or force
+        if not os.path.exists(filepath) or force==1:
             plt.savefig(filepath)
+            print(f'Saved plot in {filepath}')
         else:
-            plt.savefig(filepath)
-        print(f'Saved plot in {filepath}')
+            print(f"File already exists in {filepath}. Change \"force\" arguement to overwrite.")
     if mode=='v' or mode=='sv':
         plt.show()
 
 
-def wt_box_plot(model, model_name, mode='sv', filepath='0'):
+def wt_box_plot(model, model_name, mode='sv', filepath='0', force=0):
     # Initialize dictionaries
     weight_distributions = {}
     bias_distributions = {}
@@ -558,20 +575,23 @@ def wt_box_plot(model, model_name, mode='sv', filepath='0'):
     plt.grid(True, axis='x', linestyle='--', alpha=0.5)
     plt.tight_layout()
     if mode=='s' or mode=='sv':
+        # Find correct file path
         if filepath=='0':
             BASE_PATH, _, _, _, _ = path_definition()
             parent_name = model_name[:3]
             short_name = model_name[:-10]
             filepath = f"{BASE_PATH}/Docs_Reports/AnalysisPlots/{parent_name}/{short_name}_wtbias_box.png"
+        # Save if it doesn't exist or force
+        if not os.path.exists(filepath) or force==1:
             plt.savefig(filepath)
+            print(f'Saved plot in {filepath}')
         else:
-            plt.savefig(filepath)
-        print(f'Saved box plot in {filepath}')
+            print(f"File already exists in {filepath}. Change \"force\" arguement to overwrite.")
     if mode=='v' or mode=='sv':
         plt.show()
 
 
-def wt_histogram_ranges(model, model_name, mode='sv', filepath='0'):
+def wt_histogram_ranges(model, model_name, mode='sv', filepath='0', force=0):
     layer_ranges = wt_range_search(model, model_name, mode='0')
 
 
@@ -622,15 +642,18 @@ def wt_histogram_ranges(model, model_name, mode='sv', filepath='0'):
     plt.legend(loc='best')
     plt.tight_layout()
     if mode=='s' or mode=='sv':
+        # Find correct file path
         if filepath=='0':
             BASE_PATH, _, _, _, _ = path_definition()
             parent_name = model_name[:3]
             short_name = model_name[:-10]
             filepath = f"{BASE_PATH}/Docs_Reports/AnalysisPlots/{parent_name}/{short_name}_wtbias_hist.png"
+        # Save if it doesn't exist or force
+        if not os.path.exists(filepath) or force==1:
             plt.savefig(filepath)
+            print(f'Saved plot in {filepath}')
         else:
-            plt.savefig(filepath)
-        print(f'Saved box plot in {filepath}')
+            print(f"File already exists in {filepath}. Change \"force\" arguement to overwrite.")
     if mode=='v' or mode=='sv':
         plt.show()
 
@@ -638,7 +661,7 @@ def wt_histogram_ranges(model, model_name, mode='sv', filepath='0'):
 ### Quantization utilities
 
 # Verify
-def wt_range_search(model, model_name, mode='sv', filepath='0'):
+def wt_range_search(model, model_name, mode='sv', filepath='0', force=0):
     # s: save
     # v: verbose
     # sv: save & verbose
@@ -678,15 +701,17 @@ def wt_range_search(model, model_name, mode='sv', filepath='0'):
             range_path = f'{BASE_PATH}/Docs_Reports/Quant/Ranges/{short_name}_wt_range.json'
         else:
             range_path = filepath
-        # Save json
-        with open(range_path, "w") as f:
-            json.dump(layer_ranges, f, indent=4)
-        print(f"Saved json in: {range_path}")
-
+        # Save json if it doesn't exist or force
+        if not os.path.exists(range_path) or force==1:
+            with open(range_path, "w") as f:
+                json.dump(layer_ranges, f, indent=4)
+            print(f"Saved json in: {range_path}")
+        else:
+            print(f"File already exists in {range_path}. Change \"force\" arguement to overwrite.")
     return layer_ranges
 
 
-def activation_range_search(sampled_files, model, model_name, mode='sv', filepath='0'):
+def activation_range_search(sampled_files, model, model_name, mode='sv', filepath='0', force=0):
     tf.config.run_functions_eagerly(True)
 
     # Initialize tracking dict
@@ -723,11 +748,15 @@ def activation_range_search(sampled_files, model, model_name, mode='sv', filepat
         if filepath=='0':
             BASE_PATH, _, _, _, _ = path_definition()
             short_name = model_name[:-10]
-            filepath = f"{BASE_PATH}/Docs_Reports/Quant/Ranges/{short_name}_activation_range.json"
-        # save to json
-        with open(filepath, 'w') as f:
-            json.dump(range_serializable, f, indent=4)
-        print(f'Saved activation ranges in {filepath}')
+            filepath = f"{BASE_PATH}/Docs_Reports/Quant/Ranges/{short_name}_activation_range.json"        
+        # Save json if it doesn't exist or force
+        if not os.path.exists(filepath) or force==1:
+            with open(filepath, "w") as f:
+                json.dump(range_serializable, f, indent=4)
+            print(f'Saved activation ranges in {filepath}')
+        else:
+            print(f"File already exists in {filepath}. Change \"force\" arguement to overwrite.")
+
     if mode=='v' or mode=='sv':
         for layer_name, stats in range_serializable.items():
             print(f"{layer_name}: min = {stats['min']:.4f}, max = {stats['max']:.4f}")
@@ -768,7 +797,7 @@ def smallest_power_of_two_to_exceed(range, next_value):
 
 
 # To-do
-def hw_range_search(model, input_range, range_dict_path, shift_range_path):
+def hw_range_search(model, input_range, range_dict_path, shift_range_path, force=0):
     input_min = input_range[0]
     input_max = input_range[1]
     # read json
