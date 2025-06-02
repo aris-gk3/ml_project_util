@@ -895,6 +895,7 @@ class SymmetricFakeQuantLayer(tf.keras.layers.Layer):
             narrow_range=self.narrow_range
         )
 
+
 def clone_model_with_fake_quant(original_model, input_shape, range_dict, num_bits=8):
     new_model = Sequential()
     layer_mapping = []
