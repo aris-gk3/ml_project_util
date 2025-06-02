@@ -887,7 +887,7 @@ def quant_activations(model, model_name, input_shape=(224,224,3), range_path='0'
 def quant_weights(model, model_name, range_path='0', quant='symmetric', mode='eval', batch_len=157):
     # quant: returns model with quantized weights
     # eval: evaluates model with quantized weights & returns model with quantized weights
-    if(mode!='symmetric'):
+    if(quant!='symmetric'):
         print('No asymmetric quantization developed yet!')
         return 1
     
@@ -924,7 +924,6 @@ def quant_weights(model, model_name, range_path='0', quant='symmetric', mode='ev
        model_evaluation_precise(model, batch_len=batch_len)
 
     return model
-
 
 
 ### Model transformation utilities
