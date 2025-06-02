@@ -732,7 +732,7 @@ def activation_range_search(sampled_files, model, model_name, mode='sv', filepat
         for layer_name, stats in range_serializable.items():
             print(f"{layer_name}: min = {stats['min']:.4f}, max = {stats['max']:.4f}")
 
-    return layer_min_max
+    return range_serializable
 
 
 def smallest_power_of_two_to_exceed(range, next_value):
