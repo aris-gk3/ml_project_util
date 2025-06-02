@@ -701,14 +701,22 @@ def activation_range_search(sampled_files, model, model_name, mode='sv', filepat
             x = layer(x)
 
             if layer.name in layers_list:
-                act_min = float(tf.reduce_min(x).numpy())
-                act_max = float(tf.reduce_max(x).numpy())
+                act_min = tf.reduce_min(x).numpy()
+                act_max = tf.reduce_max(x).numpy()
 
                 if layer.name not in layer_min_max:
                     layer_min_max[layer.name] = {"min": act_min, "max": act_max}
                 else:
-                    layer_min_max[layer.name]['min'] = float(min(layer_min_max[layer.name]['min'], act_min))
-                    layer_min_max[layer.name]['max'] = float(max(layer_min_max[layer.name]['max'], act_max))
+                    layer_min_max[layer.name]['min'] = min(layer_min_max[layer.name]['min'], act_min)
+                    layer_min_max[layer.name]['max'] = max(layer_min_max[layer.name]['max'], act_max)
+
+    range_serializable = {
+        layer: {
+            "min": float(stats["min"]),
+            "max": float(stats["max"])
+        }
+        for layer, stats in layer_min_max.items()
+    }
 
     # Save and/or print ranges
     if mode=='s' or mode=='sv':
@@ -718,10 +726,10 @@ def activation_range_search(sampled_files, model, model_name, mode='sv', filepat
             filepath = f"{BASE_PATH}/Docs_Reports/Quant/Ranges/{short_name}_activation_range.json"
         # save to json
         with open(filepath, 'w') as f:
-            json.dump(layer_min_max, f, indent=4)
+            json.dump(range_serializable, f, indent=4)
         print(f'Saved activation ranges in {filepath}')
     if mode=='v' or mode=='sv':
-        for layer_name, stats in layer_min_max.items():
+        for layer_name, stats in range_serializable.items():
             print(f"{layer_name}: min = {stats['min']:.4f}, max = {stats['max']:.4f}")
 
     return layer_min_max
