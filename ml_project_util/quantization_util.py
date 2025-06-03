@@ -47,8 +47,8 @@ def subsample_imgdir(num_samples=100):
     return sampled_files
 
 
-def load_and_preprocess_image(file_path):
-    img = tf.keras.utils.load_img(file_path, target_size=(224, 224, 3))
+def load_and_preprocess_image(file_path, img_size=(224, 224, 3)):
+    img = tf.keras.utils.load_img(file_path, target_size=img_size)
     img_array = tf.keras.utils.img_to_array(img)
     img_array = preprocess_input(img_array)
     # img_array = img_array[..., ::-1]                                  # Reverses the last axis (channels), RGB -> BGR
@@ -660,6 +660,30 @@ def wt_histogram_ranges(model, model_name, mode='sv', filepath='0', force=0):
 
 ### Quantization utilities
 
+def input_range(dataset_path='0', mode='v', num_samples=300):
+    if(dataset_path == '0'):
+        _, PATH_DATASET, _, _, _ = path_definition()
+    else:
+        PATH_DATASET = dataset_path
+    
+    global_min = tf.constant(float('inf'))
+    global_max = tf.constant(float('-inf'))
+
+    sampled_files = subsample_imgdir(num_samples=num_samples)
+
+    for file_path in sampled_files:
+        input_img = load_and_preprocess_image(file_path)
+        batch_min = tf.reduce_min(input_img)
+        batch_max = tf.reduce_max(input_img)
+        global_min = tf.minimum(global_min, batch_min)
+        global_max = tf.maximum(global_max, batch_max)
+
+    if(mode=='v'):
+        print(f"Input tensor range over {len(sampled_files)} images:")
+        print(f"min = {global_min.numpy()}, max = {global_max.numpy()}")
+
+    return global_min, global_max
+
 # Verify
 def wt_range_search(model, model_name, mode='sv', filepath='0', force=0):
     # s: save
@@ -810,6 +834,7 @@ def hw_range_search(model, input_range, range_dict_path, shift_range_path, force
 
     # save range, scale, shift json
     return 0
+
 
 def hw_range_search_old(model, input_range, range_dict_path, shift_range_path, force=0):
     input_min = input_range[0]
