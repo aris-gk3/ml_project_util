@@ -681,7 +681,7 @@ def input_range(dataset_path='0', mode='v', num_samples=300):
         print(f"Input tensor range over {len(sampled_files)} images:")
         print(f"min = {global_min.numpy()}, max = {global_max.numpy()}")
 
-    return global_min, global_max
+    return global_min.numpy(), global_max.numpy()
 
 # Verify
 def wt_range_search(model, model_name, mode='sv', filepath='0', force=0):
