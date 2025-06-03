@@ -27,7 +27,6 @@ def subsample_imgdir(num_samples=100):
     _, PATH_DATASET, _, _, _ = path_definition()
     img_dir1 = f'{PATH_DATASET}/DogConverted'
     img_dir2 = f'{PATH_DATASET}/CatConverted'
-    num_samples = 40
 
     valid_extensions = ('.png', '.jpg', '.jpeg')
 
