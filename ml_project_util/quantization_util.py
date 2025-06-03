@@ -739,7 +739,13 @@ def activation_range_search(sampled_files, model, model_name, mode='sv', filepat
 
     # Initialize tracking dict
     layer_min_max = {}
-    layers_list = [layer.name for layer in model.layers if isinstance(layer, (Conv2D, Dense))]
+    layers_list = ['input_layer']
+    for layer in model.layers:
+        if isinstance(layer, (Conv2D, Dense)):
+            layers_list.append(layer.name)
+
+    in_min, in_max = input_range()
+    layer_min_max[layers_list[0]] = {"min": -max(abs(in_min), in_max), "max": max(abs(in_min), in_max)}
 
     # Process input files
     for file_path in sampled_files:
