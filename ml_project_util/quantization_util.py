@@ -777,7 +777,7 @@ def activation_range_search(sampled_files, model, model_name, mode='sv', filepat
         if filepath=='0':
             BASE_PATH, _, _, _, _ = path_definition()
             short_name = model_name[:-10]
-            filepath = f"{BASE_PATH}/Docs_Reports/Quant/Ranges/{short_name}_activation_range.json"        
+            filepath = f"{BASE_PATH}/Docs_Reports/Quant/Ranges/{short_name}_activation_sw_range.json"        
         # Save json if it doesn't exist or force
         if not os.path.exists(filepath) or force==1:
             with open(filepath, "w") as f:
