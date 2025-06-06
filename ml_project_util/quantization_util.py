@@ -827,7 +827,6 @@ def wt_range_search(model, model_name, mode='sv', filepath='0', force=0):
     return layer_ranges
 
 
-# To-do
 def activation_range_search(sampled_files, model, model_name, mode='sv', filepath='0', force=0):
     tf.config.run_functions_eagerly(True)
 
@@ -963,6 +962,86 @@ def smallest_power_of_two_to_exceed(range, next_value):
         return range
 
     return min(options)
+
+
+def compute_symmetric_int8_wt_scales(range_dict):
+    # Helper function for wt_scale_search
+    scale_dict = {}
+    for layer_name, layer_data in range_dict.items():
+        if "weight" in layer_data:
+            w_min = layer_data["weight"]["min"]
+            w_max = layer_data["weight"]["max"]
+            max_abs = max(abs(w_min), abs(w_max))
+            scale = max_abs / 127 # scale = r/q
+            scale_dict[layer_name] = scale
+    return scale_dict
+
+def wt_scale_search(wt_range_dict, model_name, filepath='0', force=0, mode='sv'):
+    if(filepath == '0'):
+        BASE_PATH, _, _, _, _ = path_definition()
+        short_name = model_name[:-10]
+        tmp_filepath = f"{BASE_PATH}/Docs_Reports/Quant/Ranges/{short_name}_wt_scale.json"
+    else:
+        tmp_filepath = filepath
+    
+    ask_message = 0
+    if(force==0):
+        if os.path.exists(tmp_filepath):
+            try:
+                with open(tmp_filepath, 'r') as f:
+                    wt_scale_dict = json.load(f)
+                print(f'Read weight scale json from {tmp_filepath}')
+            except:
+                print('Wrong format for reading input range from json!!')
+            calculate = 0
+            # revoke save mode
+            if(mode == 's'):
+                mode = ''
+            if(mode == 'sv'):
+                mode = 'v'
+        else:
+            calculate = 1
+    else:
+        calculate = 1
+        if os.path.exists(tmp_filepath):
+            ask_message = 1
+    if(calculate == 1):
+        wt_scale_dict = compute_symmetric_int8_wt_scales(wt_range_dict)
+    
+
+    if mode=='v' or mode=='sv':
+        for layer, scale in wt_scale_dict.items():
+            print(f"{layer}: scale = {scale:.8f}")
+
+    # Shows message for the user to choose if they want to overwrite
+    if(ask_message==1 and (mode == 's' or mode == 'sv')):
+        while True:
+            response = input("Do you want to overwrite previous data? (y/n): ").strip().lower()
+            if response == 'y':
+                break
+            elif response == 'n':
+                if(mode == 's'):
+                    mode = ''
+                if(mode == 'sv'):
+                    mode = 'v'
+                break
+            else:
+                print("Invalid input.")
+
+    if mode=='s' or mode=='sv':
+        with open(tmp_filepath, "w") as f:
+            json.dump(wt_scale_dict, f, indent=4)
+        print(f"Saved json in: {tmp_filepath}")
+
+    return wt_scale_dict
+
+
+def activation_sw_scale_search():
+    return 0
+
+
+def activation_hw_search():
+    return 0
 
 
 # To-do
