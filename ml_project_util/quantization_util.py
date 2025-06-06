@@ -716,7 +716,7 @@ def input_range(dataset_path='0', mode='v', num_samples=300, filepath='0',force=
 
     if(mode=='v' or mode=='sv'):
         print(f"Input tensor range over {len(sampled_files)} images:")
-        print(f"min = {input_dict['input_layer']['min']}, max = {input_dict['input_layer']['min']}")
+        print(f"min = {input_dict['input_layer']['min']}, max = {input_dict['input_layer']['max']}")
     # Shows message for the user to choose if they want to overwrite
     if(ask_message==1 and (mode == 's' or mode == 'sv')):
         while True:
