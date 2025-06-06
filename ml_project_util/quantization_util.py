@@ -19,7 +19,7 @@ from .model_evaluation import model_evaluation_precise
 ### Info & visualization for quantization
 
 def subsample_imgdir(num_samples=100):
-    train_dataset, val_dataset = load_preprocess()
+    # train_dataset, val_dataset = load_preprocess()
 
     import os
     import random
@@ -676,6 +676,7 @@ def input_range(dataset_path='0', mode='v', num_samples=300, filepath='0',force=
             try:
                 with open(tmp_filepath, 'r') as f:
                     input_dict = json.load(f)
+                print(f'Read input range json from {tmp_filepath}')
             except:
                 print('Wrong format for reading input range from json!!')
             # read here
@@ -694,6 +695,8 @@ def input_range(dataset_path='0', mode='v', num_samples=300, filepath='0',force=
         # return and then ask to write
 
     if(calculate == 1):
+        if(mode=='v' or mode=='sv'):
+            print('Calculating the Input Range...')
         if(dataset_path == '0'):
             _, PATH_DATASET, _, _, _ = path_definition()
         else:
