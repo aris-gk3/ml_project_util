@@ -736,7 +736,7 @@ def input_range(dataset_path='0', mode='v', num_samples=300, filepath='0',force=
             json.dump(input_dict, f, indent=4)
         print(f"Saved json in: {tmp_filepath}") 
 
-    return global_min.numpy(), global_max.numpy()
+    return input_dict['input_layer']['min'], input_dict['input_layer']['max']
 
 # Verify
 def wt_range_search(model, model_name, mode='sv', filepath='0', force=0):
