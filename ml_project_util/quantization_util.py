@@ -664,13 +664,14 @@ def input_range(dataset_path='0', mode='v', num_samples=300, filepath='0',force=
     # force: 0 -> read from path, if it doesn't exist calculate & write, return
     #        1 -> calculate &  return, if file exists, ask if you want to overwrite
 
+    if(filepath == '0'):
+        BASE_PATH, _, _, _, _ = path_definition()
+        tmp_filepath = f"{BASE_PATH}/Docs_Reports/Quant/Ranges/input_range.json"
+    else:
+        tmp_filepath = filepath
+
     ask_message = 0
     if(force==0):
-        if(filepath == '0'):
-            BASE_PATH, _, _, _, _ = path_definition()
-            tmp_filepath = f"{BASE_PATH}/Docs_Reports/Quant/Ranges/input_range.json"
-        else:
-            tmp_filepath = filepath
         if os.path.exists(tmp_filepath):
             try:
                 with open(filepath, 'r') as f:
