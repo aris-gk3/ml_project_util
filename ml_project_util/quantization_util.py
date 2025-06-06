@@ -1107,9 +1107,66 @@ def activation_sw_scale_search(activation_sw_range_dict, model_name, filepath='0
     return activation_sw_scale_dict
 
 
-def activation_hw_search():
-    return 0
+def activation_hw_search(activation_sw_range_dict, activation_sw_scale_dict, wt_range_dict, wt_scale_dict, debug = 1, verbose = 1):
+    layer_list = list(activation_sw_range_dict.keys())
+    print(layer_list)
 
+    scale = activation_sw_scale_dict[layer_list[0]]
+
+    # initialize activation_hw_range_dict, activation_hw_scale_dict
+    activation_hw_scale_dict = {}
+    activation_hw_scale_dict[layer_list[0]] = scale
+    activation_hw_range_dict = {}
+    activation_hw_range_dict[layer_list[0]] = {'min': activation_sw_range_dict[layer_list[0]]['min'],
+                                            'max': activation_sw_range_dict[layer_list[0]]['max']}
+    activation_shift_dict = {}
+    activation_shift_dict[layer_list[0]] = 0
+
+    for i in range(1, len(layer_list)):
+        print(f'For layer {i}.')
+        scale_prev = scale
+        scale_accumulator = scale_prev * wt_scale_dict[layer_list[i]]
+        quant_max = activation_sw_range_dict[layer_list[i]]['max'] / scale_accumulator # q = r/scale
+        quant_exp = math.ceil(math.log2(2*quant_max)) # multiply with 2 for both signs
+        quant_poweroftwo = 2 ** quant_exp
+        shift = quant_exp - 8
+        scale = scale_accumulator*(2**shift)
+        hw_max = 127 * scale  # r = q*scale
+
+        if(verbose==1):
+            #print(f'Scale accumulator: {scale_accumulator}')
+            print(f'Scale accumulator: {scale_accumulator}')
+            print(f'Scale: {scale}')
+            print(f'Previous layer activation: {activation_sw_range_dict[layer_list[i-1]]['max']}')
+            print(f'Activation: {activation_sw_range_dict[layer_list[i]]['max']}')
+        if(debug==1):
+            print(f'Quant_max: {quant_max}')
+            print(f'Quant_exp: {quant_exp}, for both signs.')
+            print(f'Quant_poweroftwo: {quant_poweroftwo}, for both signs.')
+            print(f'Layer {i}: scale ratio:{(2**shift)}')
+        if(verbose==1):
+            print(f'Hw_max: {hw_max}')
+            print(f'Shift result by {shift}')
+        print('\n')
+        
+        # write to activation_hw_scale_dict (scale for output)
+        # write to activation_hw_range_dict (scale for accumulator)
+        # write to shift (shift for accumulator of layer output)
+        activation_hw_scale_dict[layer_list[i]] = scale
+        activation_hw_range_dict[layer_list[i]] = {'min': -hw_max, 'max': hw_max}
+        activation_shift_dict[layer_list[i]] = shift
+
+    complete_dict = {
+        'activation_hw_scale': activation_hw_scale_dict,
+        'activation_sw_scale': activation_sw_scale_dict,
+        'wt_scale': wt_scale_dict,
+        'activation_hw_range_dict': activation_hw_range_dict,
+        'activation_sw_range_dict': activation_sw_range_dict,
+        'wt_range': wt_range_dict,
+        'shift': activation_shift_dict
+    }
+
+    return complete_dict
 
 # To-do
 def hw_range_search(model, model_name, input_range, force=0, verbose=1,
