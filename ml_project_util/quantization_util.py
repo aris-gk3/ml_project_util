@@ -843,7 +843,6 @@ def activation_range_search(sampled_files, model, model_name, mode='sv', filepat
     if(force==0):
         if os.path.exists(tmp_filepath):
             try:
-                min_input, max_input = input_range(mode='v',force=0)
                 with open(tmp_filepath, 'r') as f:
                     range_serializable = json.load(f)
                 print(f'Read activation range json from {tmp_filepath}')
@@ -870,7 +869,7 @@ def activation_range_search(sampled_files, model, model_name, mode='sv', filepat
             if isinstance(layer, (Conv2D, Dense)):
                 layers_list.append(layer.name)
 
-        in_min, in_max = input_range()
+        in_min, in_max = input_range(mode=mode)
         layer_min_max[layers_list[0]] = {"min": -max(abs(in_min), in_max), "max": max(abs(in_min), in_max)}
 
         # Process input files
