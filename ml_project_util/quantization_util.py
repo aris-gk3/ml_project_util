@@ -659,27 +659,82 @@ def wt_histogram_ranges(model, model_name, mode='sv', filepath='0', force=0):
 
 ### Quantization utilities
 
-def input_range(dataset_path='0', mode='v', num_samples=300):
-    if(dataset_path == '0'):
-        _, PATH_DATASET, _, _, _ = path_definition()
+def input_range(dataset_path='0', mode='v', num_samples=300, filepath='0',force=0):
+    # Plot functions, don't return anything. Only save or plot.
+    # force: 0 -> read from path, if it doesn't exist calculate & write, return
+    #        1 -> calculate &  return, if file exists, ask if you want to overwrite
+
+    ask_message = 0
+    if(force==0):
+        if(filepath == '0'):
+            BASE_PATH, _, _, _, _ = path_definition()
+            tmp_filepath = f"{BASE_PATH}/Docs_Reports/Quant/Ranges/input_range.json"
+        else:
+            tmp_filepath = filepath
+        if os.path.exists(tmp_filepath):
+            try:
+                with open(filepath, 'r') as f:
+                    input_dict = json.load(f)
+            except:
+                print('Wrong format for reading input range from json!!')
+            # read here
+            calculate = 0
+            # revoke save mode
+            if(mode == 's'):
+                mode = ''
+            if(mode == 'sv'):
+                mode = 'v'
+        else:
+            calculate = 1
     else:
-        PATH_DATASET = dataset_path
-    
-    global_min = tf.constant(float('inf'))
-    global_max = tf.constant(float('-inf'))
+        calculate = 1
+        if os.path.exists(tmp_filepath):
+            ask_message = 1
+        # return and then ask to write
 
-    sampled_files = subsample_imgdir(num_samples=num_samples)
+    if(calculate == 1):
+        if(dataset_path == '0'):
+            _, PATH_DATASET, _, _, _ = path_definition()
+        else:
+            PATH_DATASET = dataset_path
+        
+        global_min = tf.constant(float('inf'))
+        global_max = tf.constant(float('-inf'))
 
-    for file_path in sampled_files:
-        input_img = load_and_preprocess_image(file_path)
-        batch_min = tf.reduce_min(input_img)
-        batch_max = tf.reduce_max(input_img)
-        global_min = tf.minimum(global_min, batch_min)
-        global_max = tf.maximum(global_max, batch_max)
+        sampled_files = subsample_imgdir(num_samples=num_samples)
 
-    if(mode=='v'):
+        for file_path in sampled_files:
+            input_img = load_and_preprocess_image(file_path)
+            batch_min = tf.reduce_min(input_img)
+            batch_max = tf.reduce_max(input_img)
+            global_min = tf.minimum(global_min, batch_min)
+            global_max = tf.maximum(global_max, batch_max)
+
+        input_dict = {}
+        input_dict['input_layer']['min'] = global_min.numpy()
+        input_dict['input_layer']['min'] = global_max.numpy()
+
+    if(mode=='v' or mode=='sv'):
         print(f"Input tensor range over {len(sampled_files)} images:")
-        print(f"min = {global_min.numpy()}, max = {global_max.numpy()}")
+        print(f"min = {input_dict['input_layer']['min']}, max = {input_dict['input_layer']['min']}")
+    # Shows message for the user to choose if they want to overwrite
+    if(mode==ask_message and (mode == 's' or mode == 'sv')):
+        while True:
+            response = input("Do you want to overwrite previous data? (y/n): ").strip().lower()
+            if response == 'y':
+                break
+            elif response == 'n':
+                if(mode == 's'):
+                    mode = ''
+                if(mode == 'sv'):
+                    mode = 'v'
+                break
+            else:
+                print("Invalid input.")
+    if(mode=='s' or mode=='sv'):
+        with open(tmp_filepath, "w") as f:
+            json.dump(input_dict, f, indent=4)
+        print(f"Saved json in: {tmp_filepath}") 
 
     return global_min.numpy(), global_max.numpy()
 
