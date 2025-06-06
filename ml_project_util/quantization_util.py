@@ -760,7 +760,7 @@ def wt_range_search(model, model_name, mode='sv', filepath='0', force=0):
             try:
                 with open(tmp_filepath, 'r') as f:
                     layer_ranges = json.load(f)
-                print(f'Read input range json from {tmp_filepath}')
+                print(f'Read weight range json from {tmp_filepath}')
             except:
                 print('Wrong format for reading input range from json!!')
             calculate = 0
@@ -844,8 +844,8 @@ def activation_range_search(sampled_files, model, model_name, mode='sv', filepat
         if os.path.exists(tmp_filepath):
             try:
                 with open(tmp_filepath, 'r') as f:
-                    layer_ranges = json.load(f)
-                print(f'Read input range json from {tmp_filepath}')
+                    range_serializable = json.load(f)
+                print(f'Read activation range json from {tmp_filepath}')
             except:
                 print('Wrong format for reading input range from json!!')
             calculate = 0
