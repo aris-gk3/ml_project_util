@@ -740,12 +740,13 @@ def input_range(dataset_path='0', mode='v', num_samples=300, filepath='0',force=
 
     return input_dict['input_layer']['min'], input_dict['input_layer']['max']
 
-# Verify
+
 def wt_range_search(model, model_name, mode='sv', filepath='0', force=0):
     # s: save
     # v: verbose
     # sv: save & verbose
 
+    # Find path
     if(filepath == '0'):
         BASE_PATH, _, _, _, _ = path_definition()
         short_name = model_name[:-10]
@@ -819,7 +820,6 @@ def wt_range_search(model, model_name, mode='sv', filepath='0', force=0):
             else:
                 print("Invalid input.")
 
-    # Find path
     if mode=='s' or mode=='sv':
         with open(tmp_filepath, "w") as f:
             json.dump(layer_ranges, f, indent=4)
@@ -827,45 +827,96 @@ def wt_range_search(model, model_name, mode='sv', filepath='0', force=0):
     return layer_ranges
 
 
+# To-do
 def activation_range_search(sampled_files, model, model_name, mode='sv', filepath='0', force=0):
     tf.config.run_functions_eagerly(True)
 
-    # Initialize tracking dict
-    layer_min_max = {}
-    layers_list = ['input_layer']
-    for layer in model.layers:
-        if isinstance(layer, (Conv2D, Dense)):
-            layers_list.append(layer.name)
+    # Find path
+    if(filepath == '0'):
+        BASE_PATH, _, _, _, _ = path_definition()
+        short_name = model_name[:-10]
+        tmp_filepath = f"{BASE_PATH}/Docs_Reports/Quant/Ranges/{short_name}_wt_range.json"
+    else:
+        tmp_filepath = filepath
+    
+    ask_message = 0
+    if(force==0):
+        if os.path.exists(tmp_filepath):
+            try:
+                with open(tmp_filepath, 'r') as f:
+                    layer_ranges = json.load(f)
+                print(f'Read input range json from {tmp_filepath}')
+            except:
+                print('Wrong format for reading input range from json!!')
+            calculate = 0
+            # revoke save mode
+            if(mode == 's'):
+                mode = ''
+            if(mode == 'sv'):
+                mode = 'v'
+        else:
+            calculate = 1
+    else:
+        calculate = 1
+        if os.path.exists(tmp_filepath):
+            ask_message = 1
 
-    in_min, in_max = input_range()
-    layer_min_max[layers_list[0]] = {"min": -max(abs(in_min), in_max), "max": max(abs(in_min), in_max)}
+    if(calculate == 1):
+        # Initialize tracking dict
+        layer_min_max = {}
+        layers_list = ['input_layer']
+        for layer in model.layers:
+            if isinstance(layer, (Conv2D, Dense)):
+                layers_list.append(layer.name)
 
-    # Process input files
-    for file_path in sampled_files:
-        x = load_and_preprocess_image(file_path)
+        in_min, in_max = input_range()
+        layer_min_max[layers_list[0]] = {"min": -max(abs(in_min), in_max), "max": max(abs(in_min), in_max)}
 
-        for i, layer in enumerate(model.layers):
-            x = layer(x)
+        # Process input files
+        for file_path in sampled_files:
+            x = load_and_preprocess_image(file_path)
 
-            if layer.name in layers_list:
-                act_min = tf.reduce_min(x).numpy()
-                act_max = tf.reduce_max(x).numpy()
+            for i, layer in enumerate(model.layers):
+                x = layer(x)
 
-                if layer.name not in layer_min_max:
-                    layer_min_max[layer.name] = {"min": act_min, "max": act_max}
-                else:
-                    layer_min_max[layer.name]['min'] = min(layer_min_max[layer.name]['min'], act_min)
-                    layer_min_max[layer.name]['max'] = max(layer_min_max[layer.name]['max'], act_max)
+                if layer.name in layers_list:
+                    act_min = tf.reduce_min(x).numpy()
+                    act_max = tf.reduce_max(x).numpy()
 
-    range_serializable = {
-        layer: {
-            "min": float(stats["min"]),
-            "max": float(stats["max"])
+                    if layer.name not in layer_min_max:
+                        layer_min_max[layer.name] = {"min": act_min, "max": act_max}
+                    else:
+                        layer_min_max[layer.name]['min'] = min(layer_min_max[layer.name]['min'], act_min)
+                        layer_min_max[layer.name]['max'] = max(layer_min_max[layer.name]['max'], act_max)
+
+        range_serializable = {
+            layer: {
+                "min": float(stats["min"]),
+                "max": float(stats["max"])
+            }
+            for layer, stats in layer_min_max.items()
         }
-        for layer, stats in layer_min_max.items()
-    }
 
-    # Save and/or print ranges
+    if mode=='v' or mode=='sv':
+        for layer_name, stats in range_serializable.items():
+            print(f"{layer_name}: min = {stats['min']:.4f}, max = {stats['max']:.4f}")
+
+        # Shows message for the user to choose if they want to overwrite
+    if(ask_message==1 and (mode == 's' or mode == 'sv')):
+        while True:
+            response = input("Do you want to overwrite previous data? (y/n): ").strip().lower()
+            if response == 'y':
+                break
+            elif response == 'n':
+                if(mode == 's'):
+                    mode = ''
+                if(mode == 'sv'):
+                    mode = 'v'
+                break
+            else:
+                print("Invalid input.")
+
+        # Save and/or print ranges
     if mode=='s' or mode=='sv':
         if filepath=='0':
             BASE_PATH, _, _, _, _ = path_definition()
@@ -878,10 +929,6 @@ def activation_range_search(sampled_files, model, model_name, mode='sv', filepat
             print(f'Saved activation ranges in {filepath}')
         else:
             print(f"File already exists in {filepath}. Change \"force\" arguement to overwrite.")
-
-    if mode=='v' or mode=='sv':
-        for layer_name, stats in range_serializable.items():
-            print(f"{layer_name}: min = {stats['min']:.4f}, max = {stats['max']:.4f}")
 
     return range_serializable
 
@@ -1068,6 +1115,7 @@ def gen_sample_paths(path_dataset='0', num_samples=40):
 
 # To-do
 def quant_activations(model, model_name, input_shape=(224,224,3), range_path='0', mode='hw'):
+    # Only for evaluation.
     # 'sw' means quantization is run based on arbitrary symmetric ranges of max values
     # 'hw' means hw efficient quantization is run, so that scales from previous to next layer are only calculated based on shifting bits
 
@@ -1112,7 +1160,9 @@ def quant_activations(model, model_name, input_shape=(224,224,3), range_path='0'
     model_evaluation_precise(quant_activation_model)
 
 
+# To-do
 def quant_weights(model, model_name, range_path='0', quant='symmetric', mode='eval', batch_len=157):
+    # Only for evaluation.
     # quant: returns model with quantized weights
     # eval: evaluates model with quantized weights & returns model with quantized weights
     if(quant!='symmetric'):
