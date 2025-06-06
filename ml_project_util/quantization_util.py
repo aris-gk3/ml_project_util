@@ -679,7 +679,6 @@ def input_range(dataset_path='0', mode='v', num_samples=300, filepath='0',force=
                 print(f'Read input range json from {tmp_filepath}')
             except:
                 print('Wrong format for reading input range from json!!')
-            # read here
             calculate = 0
             # revoke save mode
             if(mode == 's'):
@@ -692,7 +691,6 @@ def input_range(dataset_path='0', mode='v', num_samples=300, filepath='0',force=
         calculate = 1
         if os.path.exists(tmp_filepath):
             ask_message = 1
-        # return and then ask to write
 
     if(calculate == 1):
         if(mode=='v' or mode=='sv'):
@@ -747,49 +745,85 @@ def wt_range_search(model, model_name, mode='sv', filepath='0', force=0):
     # s: save
     # v: verbose
     # sv: save & verbose
-    # Final structured dictionary
-    layer_ranges = {}
 
-    for layer in model.layers:
-        if hasattr(layer, "get_weights") and hasattr(layer, "set_weights"):
-            weights = layer.get_weights()
-            if weights:
-                sub_dict = {}
+    if(filepath == '0'):
+        BASE_PATH, _, _, _, _ = path_definition()
+        short_name = model_name[:-10]
+        tmp_filepath = f"{BASE_PATH}/Docs_Reports/Quant/Ranges/{short_name}_wt_range.json"
+    else:
+        tmp_filepath = filepath
 
-                if len(weights) >= 1:  # weights[0] = kernel weights
-                    w = np.array(weights[0])
-                    sub_dict["weight"] = {
-                        "min": float(np.min(w)),
-                        "max": float(np.max(w))
-                    }
+    ask_message = 0
+    if(force==0):
+        if os.path.exists(tmp_filepath):
+            try:
+                with open(tmp_filepath, 'r') as f:
+                    input_dict = json.load(f)
+                print(f'Read input range json from {tmp_filepath}')
+            except:
+                print('Wrong format for reading input range from json!!')
+            calculate = 0
+            # revoke save mode
+            if(mode == 's'):
+                mode = ''
+            if(mode == 'sv'):
+                mode = 'v'
+        else:
+            calculate = 1
+    else:
+        calculate = 1
+        if os.path.exists(tmp_filepath):
+            ask_message = 1
 
-                if len(weights) >= 2:  # weights[1] = biases
-                    b = np.array(weights[1])
-                    sub_dict["bias"] = {
-                        "min": float(np.min(b)),
-                        "max": float(np.max(b))
-                    }
+    if(calculate == 1):
+        # Final structured dictionary
+        layer_ranges = {}
 
-                layer_ranges[layer.name] = sub_dict
+        for layer in model.layers:
+            if hasattr(layer, "get_weights") and hasattr(layer, "set_weights"):
+                weights = layer.get_weights()
+                if weights:
+                    sub_dict = {}
+
+                    if len(weights) >= 1:  # weights[0] = kernel weights
+                        w = np.array(weights[0])
+                        sub_dict["weight"] = {
+                            "min": float(np.min(w)),
+                            "max": float(np.max(w))
+                        }
+
+                    if len(weights) >= 2:  # weights[1] = biases
+                        b = np.array(weights[1])
+                        sub_dict["bias"] = {
+                            "min": float(np.min(b)),
+                            "max": float(np.max(b))
+                        }
+
+                    layer_ranges[layer.name] = sub_dict
 
     if mode=='v' or mode=='sv':
         print(json.dumps(layer_ranges, indent=2))
 
+    # Shows message for the user to choose if they want to overwrite
+    if(ask_message==1 and (mode == 's' or mode == 'sv')):
+        while True:
+            response = input("Do you want to overwrite previous data? (y/n): ").strip().lower()
+            if response == 'y':
+                break
+            elif response == 'n':
+                if(mode == 's'):
+                    mode = ''
+                if(mode == 'sv'):
+                    mode = 'v'
+                break
+            else:
+                print("Invalid input.")
+
     # Find path
     if mode=='s' or mode=='sv':
-        if filepath=='0':
-            BASE_PATH, PATH_DATASET, PATH_RAWDATA, PATH_JOINEDDATA, PATH_SAVEDMODELS = path_definition()
-            short_name = model_name[:-10]
-            range_path = f'{BASE_PATH}/Docs_Reports/Quant/Ranges/{short_name}_wt_range.json'
-        else:
-            range_path = filepath
-        # Save json if it doesn't exist or force
-        if not os.path.exists(range_path) or force==1:
-            with open(range_path, "w") as f:
-                json.dump(layer_ranges, f, indent=4)
-            print(f"Saved json in: {range_path}")
-        else:
-            print(f"File already exists in {range_path}. Change \"force\" arguement to overwrite.")
+        with open(tmp_filepath, "w") as f:
+            json.dump(layer_ranges, f, indent=4)
+        print(f"Saved json in: {tmp_filepath}")
     return layer_ranges
 
 
