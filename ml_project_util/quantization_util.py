@@ -712,8 +712,7 @@ def input_range(dataset_path='0', mode='v', num_samples=300, filepath='0',force=
             global_max = tf.maximum(global_max, batch_max)
 
         input_dict = {}
-        input_dict['input_layer']['min'] = global_min.numpy()
-        input_dict['input_layer']['min'] = global_max.numpy()
+        input_dict['input_layer'] = {'min': global_min.numpy(), 'max': global_max.numpy()}
 
     if(mode=='v' or mode=='sv'):
         print(f"Input tensor range over {len(sampled_files)} images:")
