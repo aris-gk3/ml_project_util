@@ -1109,7 +1109,9 @@ def activation_sw_scale_search(activation_sw_range_dict, model_name, filepath='0
 
 def activation_hw_search(activation_sw_range_dict, activation_sw_scale_dict, wt_range_dict, wt_scale_dict, debug = 1, verbose = 1):
     layer_list = list(activation_sw_range_dict.keys())
-    print(layer_list)
+    if(verbose==1):
+        print(layer_list)
+        print('\n')
 
     scale = activation_sw_scale_dict[layer_list[0]]
 
