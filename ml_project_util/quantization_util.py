@@ -674,7 +674,7 @@ def input_range(dataset_path='0', mode='v', num_samples=300, filepath='0',force=
     if(force==0):
         if os.path.exists(tmp_filepath):
             try:
-                with open(filepath, 'r') as f:
+                with open(tmp_filepath, 'r') as f:
                     input_dict = json.load(f)
             except:
                 print('Wrong format for reading input range from json!!')
