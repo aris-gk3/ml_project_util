@@ -835,7 +835,7 @@ def activation_range_search(sampled_files, model, model_name, mode='sv', filepat
     if(filepath == '0'):
         BASE_PATH, _, _, _, _ = path_definition()
         short_name = model_name[:-10]
-        tmp_filepath = f"{BASE_PATH}/Docs_Reports/Quant/Ranges/{short_name}_wt_range.json"
+        tmp_filepath = f"{BASE_PATH}/Docs_Reports/Quant/Ranges/{short_name}_activation_sw_range.json"
     else:
         tmp_filepath = filepath
     
@@ -843,6 +843,7 @@ def activation_range_search(sampled_files, model, model_name, mode='sv', filepat
     if(force==0):
         if os.path.exists(tmp_filepath):
             try:
+                min_input, max_input = input_range(mode='v',force=0)
                 with open(tmp_filepath, 'r') as f:
                     range_serializable = json.load(f)
                 print(f'Read activation range json from {tmp_filepath}')
@@ -888,7 +889,7 @@ def activation_range_search(sampled_files, model, model_name, mode='sv', filepat
                     else:
                         layer_min_max[layer.name]['min'] = min(layer_min_max[layer.name]['min'], act_min)
                         layer_min_max[layer.name]['max'] = max(layer_min_max[layer.name]['max'], act_max)
-
+        
         range_serializable = {
             layer: {
                 "min": float(stats["min"]),
