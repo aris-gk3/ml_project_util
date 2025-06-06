@@ -758,7 +758,7 @@ def wt_range_search(model, model_name, mode='sv', filepath='0', force=0):
         if os.path.exists(tmp_filepath):
             try:
                 with open(tmp_filepath, 'r') as f:
-                    input_dict = json.load(f)
+                    layer_ranges = json.load(f)
                 print(f'Read input range json from {tmp_filepath}')
             except:
                 print('Wrong format for reading input range from json!!')
