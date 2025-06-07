@@ -1348,12 +1348,12 @@ def quant_activations(model, model_name, num_bits=8, input_shape=(224,224,3), mo
         print(f'Quantization range not found in {filepath}, recalculating.')
         # calculate and save json with ranges
         if(mode=='hw'):
-            complete_dict = complete_dict_search(model, model_name, force=0, debug=0, mode='sv', filepath='0')
+            complete_dict = complete_dict_search(model, model_name, force=0, debug=0, mode='s', filepath='0')
             range_dict = complete_dict["activation_hw_range_dict"]
             # function that calculates hw range
         else:
             sampled_files = gen_sample_paths()
-            range_dict = activation_range_search(sampled_files, model, model_name)
+            range_dict = activation_range_search(sampled_files, model, model_name, mode='s')
         # Save json
         try:
             with open(filepath, 'w') as f:
