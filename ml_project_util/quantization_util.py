@@ -660,7 +660,7 @@ def wt_histogram_ranges(model, model_name, mode='sv', filepath='0', force=0):
 ### Quantization utilities
 
 def input_range(dataset_path='0', mode='v', num_samples=300, filepath='0',force=0):
-    # Plot functions, don't return anything. Only save or plot.
+    # v: prints input range
     # force: 0 -> if file exists read from path & return, if it doesn't exist calculate & write, return
     #        1 -> calculate &  return, if file exists, ask if you want to overwrite
 
@@ -745,6 +745,8 @@ def wt_range_search(model, model_name, mode='sv', filepath='0', force=0):
     # s: save
     # v: verbose
     # sv: save & verbose
+    # force: 0 -> if file exists read from path & return, if it doesn't exist calculate & write, return
+    #        1 -> calculate &  return, if file exists, ask if you want to overwrite
 
     # Find path
     if(filepath == '0'):
@@ -828,6 +830,12 @@ def wt_range_search(model, model_name, mode='sv', filepath='0', force=0):
 
 
 def activation_range_search(sampled_files, model, model_name, mode='sv', filepath='0', force=0):
+    # s: save
+    # v: verbose
+    # sv: save & verbose
+    # force: 0 -> if file exists read from path & return, if it doesn't exist calculate & write, return
+    #        1 -> calculate &  return, if file exists, ask if you want to overwrite
+
     tf.config.run_functions_eagerly(True)
 
     # Find path
@@ -900,7 +908,7 @@ def activation_range_search(sampled_files, model, model_name, mode='sv', filepat
         for layer_name, stats in range_serializable.items():
             print(f"{layer_name}: min = {stats['min']:.4f}, max = {stats['max']:.4f}")
 
-        # Shows message for the user to choose if they want to overwrite
+    # Shows message for the user to choose if they want to overwrite
     if(ask_message==1 and (mode == 's' or mode == 'sv')):
         while True:
             response = input("Do you want to overwrite previous data? (y/n): ").strip().lower()
@@ -915,7 +923,7 @@ def activation_range_search(sampled_files, model, model_name, mode='sv', filepat
             else:
                 print("Invalid input.")
 
-        # Save and/or print ranges
+    # Save and/or print ranges
     if mode=='s' or mode=='sv':
         if filepath=='0':
             BASE_PATH, _, _, _, _ = path_definition()
@@ -978,6 +986,12 @@ def compute_symmetric_int8_wt_scales(range_dict):
 
 
 def wt_scale_search(wt_range_dict, model_name, filepath='0', force=0, mode='sv'):
+    # s: save
+    # v: verbose
+    # sv: save & verbose
+    # force: 0 -> if file exists read from path & return, if it doesn't exist calculate & write, return
+    #        1 -> calculate &  return, if file exists, ask if you want to overwrite
+
     if(filepath == '0'):
         BASE_PATH, _, _, _, _ = path_definition()
         short_name = model_name[:-10]
@@ -1049,6 +1063,11 @@ def compute_symmetric_int8_activation_scales(range_dict):
 
 
 def activation_sw_scale_search(activation_sw_range_dict, model_name, filepath='0', force=0, mode='sv'):
+    # s: save
+    # v: verbose
+    # sv: save & verbose
+    # force: 0 -> if file exists read from path & return, if it doesn't exist calculate & write, return
+    #        1 -> calculate &  return, if file exists, ask if you want to overwrite
     if(filepath == '0'):
         BASE_PATH, _, _, _, _ = path_definition()
         short_name = model_name[:-10]
@@ -1108,7 +1127,13 @@ def activation_sw_scale_search(activation_sw_range_dict, model_name, filepath='0
 
 
 def activation_hw_search(model_name, activation_sw_range_dict, activation_sw_scale_dict, wt_range_dict, wt_scale_dict, debug=0, force=0, filepath='0', mode='sv'):
-    
+    # s: save
+    # v: verbose
+    # sv: save & verbose
+    # force: 0 -> if file exists read from path & return, if it doesn't exist calculate & write, return
+    #        1 -> calculate &  return, if file exists, ask if you want to overwrite
+    # debug: prints layer by layer calculations
+
     # Find correct path
     if(filepath == '0'):
         BASE_PATH, _, _, _, _ = path_definition()
@@ -1240,6 +1265,13 @@ def activation_hw_search(model_name, activation_sw_range_dict, activation_sw_sca
 
 
 def complete_dict_search(model, model_name, force=0, debug=0, mode='sv', filepath='0'):
+    # s: save
+    # v: verbose
+    # sv: save & verbose
+    # force: 0 -> if file exists read from path & return, if it doesn't exist calculate & write, return
+    #        1 -> calculate &  return, if file exists, ask if you want to overwrite
+    # debug: prints layer by layer calculations
+
     sampled_files = gen_sample_paths()
     activation_sw_range_dict = activation_range_search(sampled_files, model, model_name, mode=mode, force=force)
 
@@ -1252,42 +1284,6 @@ def complete_dict_search(model, model_name, force=0, debug=0, mode='sv', filepat
     complete_dict = activation_hw_search(model_name, activation_sw_range_dict, activation_sw_scale_dict, wt_range_dict, wt_scale_dict, debug=debug, force=force, mode=mode, filepath=filepath)
 
     return complete_dict
-
-def hw_range_search_old(model, input_range, range_dict_path, shift_range_path, force=0):
-    input_min = input_range[0]
-    input_max = input_range[1]
-    # read json
-    try:
-        with open(range_dict_path, 'r') as file:
-            layer_min_max = json.load(file)
-    except:
-        print('No float range dictionary found!')
-    
-    # compare and write dict
-    layers_list = list(layer_min_max.keys())
-    hw_range = {}
-    hw_range[layers_list[0]] = {'max': input_max}
-    hw_range[layers_list[0]]['min'] = input_min
-    i = 0
-    for layer in model.layers:
-        # if isinstance(layer, Conv2D) or isinstance(layer, Dense):
-        if i+1 < len(layers_list):
-            tmp_max = \
-                smallest_power_of_two_to_exceed(hw_range[layers_list[i]]['max'], layer_min_max[layers_list[i+1]]['max'])
-            hw_range[layers_list[i+1]] = {'max': tmp_max}
-            hw_range[layers_list[i+1]]['min'] = 0
-            i = i + 1
-    
-    # write json
-    hw_range_serializable = {
-        layer: {
-            "min": float(stats["min"]),
-            "max": float(stats["max"])
-        }
-        for layer, stats in hw_range.items()
-    }
-    with open(shift_range_path, "w") as f:
-        json.dump(hw_range_serializable, f, indent=4)
 
 
 def gen_sample_paths(path_dataset='0', num_samples=40):
@@ -1324,7 +1320,7 @@ def gen_sample_paths(path_dataset='0', num_samples=40):
 ### Quantize models & evaluate
 
 # To-do
-def quant_activations(model, model_name, input_shape=(224,224,3), range_path='0', mode='hw'):
+def quant_activations(model, model_name, num_bits=8, input_shape=(224,224,3), range_path='0', mode='hw'):
     # Only for evaluation.
     # 'sw' means quantization is run based on arbitrary symmetric ranges of max values
     # 'hw' means hw efficient quantization is run, so that scales from previous to next layer are only calculated based on shifting bits
@@ -1371,7 +1367,7 @@ def quant_activations(model, model_name, input_shape=(224,224,3), range_path='0'
 
 
 # To-do
-def quant_weights(model, model_name, range_path='0', quant='symmetric', mode='eval', batch_len=157):
+def quant_weights(model, model_name, num_bits=8, range_path='0', quant='symmetric', mode='eval', batch_len=157):
     # Only for evaluation.
     # quant: returns model with quantized weights
     # eval: evaluates model with quantized weights & returns model with quantized weights
@@ -1389,7 +1385,7 @@ def quant_weights(model, model_name, range_path='0', quant='symmetric', mode='ev
         filepath = range_path
     try:
         with open(filepath, 'r') as f:
-            range_dict = json.load(f)
+            weight_ranges = json.load(f)
         print(f'Weight quantization range has been read from {filepath}.')
     except:
         print(f'Weight quantization not found in {filepath}, searching now...')
@@ -1402,7 +1398,7 @@ def quant_weights(model, model_name, range_path='0', quant='symmetric', mode='ev
             if weights and layer.name in weight_ranges:
                 layer_ranges = weight_ranges[layer.name]
                 new_weights = [
-                    quantize_tensor_symmetric(w, w_range)
+                    quantize_tensor_symmetric(w, w_range, num_bits=num_bits)
                     for w, w_range in zip(weights, layer_ranges)
                 ]
                 layer.set_weights(new_weights)
