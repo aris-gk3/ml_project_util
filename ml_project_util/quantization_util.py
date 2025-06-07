@@ -661,7 +661,7 @@ def wt_histogram_ranges(model, model_name, mode='sv', filepath='0', force=0):
 
 def input_range(dataset_path='0', mode='v', num_samples=300, filepath='0',force=0):
     # Plot functions, don't return anything. Only save or plot.
-    # force: 0 -> read from path, if it doesn't exist calculate & write, return
+    # force: 0 -> if file exists read from path & return, if it doesn't exist calculate & write, return
     #        1 -> calculate &  return, if file exists, ask if you want to overwrite
 
     if(filepath == '0'):
@@ -762,7 +762,7 @@ def wt_range_search(model, model_name, mode='sv', filepath='0', force=0):
                     layer_ranges = json.load(f)
                 print(f'Read weight range json from {tmp_filepath}')
             except:
-                print('Wrong format for reading input range from json!!')
+                print('Wrong format for reading range from json!!')
             calculate = 0
             # revoke save mode
             if(mode == 's'):
@@ -846,7 +846,7 @@ def activation_range_search(sampled_files, model, model_name, mode='sv', filepat
                     range_serializable = json.load(f)
                 print(f'Read activation range json from {tmp_filepath}')
             except:
-                print('Wrong format for reading input range from json!!')
+                print('Wrong format for reading range from json!!')
             calculate = 0
             # revoke save mode
             if(mode == 's'):
@@ -993,7 +993,7 @@ def wt_scale_search(wt_range_dict, model_name, filepath='0', force=0, mode='sv')
                     wt_scale_dict = json.load(f)
                 print(f'Read weight scale json from {tmp_filepath}')
             except:
-                print('Wrong format for reading input range from json!!')
+                print('Wrong format for reading range from json!!')
             calculate = 0
             # revoke save mode
             if(mode == 's'):
@@ -1064,7 +1064,7 @@ def activation_sw_scale_search(activation_sw_range_dict, model_name, filepath='0
                     activation_sw_scale_dict = json.load(f)
                 print(f'Read activation sw scale json from {tmp_filepath}')
             except:
-                print('Wrong format for reading input range from json!!')
+                print('Wrong format for reading range from json!!')
             calculate = 0
             # revoke save mode
             if(mode == 's'):
@@ -1107,67 +1107,136 @@ def activation_sw_scale_search(activation_sw_range_dict, model_name, filepath='0
     return activation_sw_scale_dict
 
 
-def activation_hw_search(activation_sw_range_dict, activation_sw_scale_dict, wt_range_dict, wt_scale_dict, debug = 1, verbose = 1):
-    layer_list = list(activation_sw_range_dict.keys())
-    if(verbose==1):
-        print(layer_list)
-        print('\n')
+def activation_hw_search(model_name, activation_sw_range_dict, activation_sw_scale_dict, wt_range_dict, wt_scale_dict, debug=1, force=1, filepath='0', mode='sv'):
+    
+    # Find correct path
+    if(filepath == '0'):
+        BASE_PATH, _, _, _, _ = path_definition()
+        short_name = model_name[:-10]
+        tmp_filepath = f"{BASE_PATH}/Docs_Reports/Quant/Ranges/{short_name}_complete_dict.json"
+    else:
+        tmp_filepath = filepath
+    
+    # Flag inputs handling
+    ask_message = 0
+    if(force==0):
+        if os.path.exists(tmp_filepath):
+            try:
+                with open(tmp_filepath, 'r') as f:
+                    complete_dict = json.load(f)
+                print(f'Read complete json dictionary from {tmp_filepath}')
+            except:
+                print('Wrong format for reading json!!')
+            calculate = 0
+            # revoke save mode
+            if(mode == 's'):
+                mode = ''
+            if(mode == 'sv'):
+                mode = 'v'
+        else:
+            calculate = 1
+    else:
+        calculate = 1
+        if os.path.exists(tmp_filepath):
+            ask_message = 1
 
-    scale = activation_sw_scale_dict[layer_list[0]]
+    if mode=='v' or mode=='sv':
+        verbose = 1
+    else:
+        verbose = 0
 
-    # initialize activation_hw_range_dict, activation_hw_scale_dict
-    activation_hw_scale_dict = {}
-    activation_hw_scale_dict[layer_list[0]] = scale
-    activation_hw_range_dict = {}
-    activation_hw_range_dict[layer_list[0]] = {'min': activation_sw_range_dict[layer_list[0]]['min'],
-                                            'max': activation_sw_range_dict[layer_list[0]]['max']}
-    activation_shift_dict = {}
-    activation_shift_dict[layer_list[0]] = 0
-
-    for i in range(1, len(layer_list)):
-        if verbose==1:
-            print(f'For layer {i}.')
-        scale_prev = scale
-        scale_accumulator = scale_prev * wt_scale_dict[layer_list[i]]
-        quant_max = activation_sw_range_dict[layer_list[i]]['max'] / scale_accumulator # q = r/scale
-        quant_exp = math.ceil(math.log2(2*quant_max)) # multiply with 2 for both signs
-        quant_poweroftwo = 2 ** quant_exp
-        shift = quant_exp - 8
-        scale = scale_accumulator*(2**shift)
-        hw_max = 127 * scale  # r = q*scale
-
+    if(calculate == 1):
+        layer_list = list(activation_sw_range_dict.keys())
         if(verbose==1):
-            #print(f'Scale accumulator: {scale_accumulator}')
-            print(f'Scale accumulator: {scale_accumulator}')
-            print(f'Scale: {scale}')
-            print(f'Previous layer activation: {activation_sw_range_dict[layer_list[i-1]]['max']}')
-            print(f'Activation: {activation_sw_range_dict[layer_list[i]]['max']}')
-        if(debug==1):
-            print(f'Quant_max: {quant_max}')
-            print(f'Quant_exp: {quant_exp}, for both signs.')
-            print(f'Quant_poweroftwo: {quant_poweroftwo}, for both signs.')
-            print(f'Layer {i}: scale ratio:{(2**shift)}')
-        if(verbose==1):
-            print(f'Hw_max: {hw_max}')
-            print(f'Shift result by {shift}')
-        print('\n')
-        
-        # write to activation_hw_scale_dict (scale for output)
-        # write to activation_hw_range_dict (scale for accumulator)
-        # write to shift (shift for accumulator of layer output)
-        activation_hw_scale_dict[layer_list[i]] = scale
-        activation_hw_range_dict[layer_list[i]] = {'min': -hw_max, 'max': hw_max}
-        activation_shift_dict[layer_list[i]] = shift
+            print(layer_list)
+            print('\n')
 
-    complete_dict = {
-        'activation_hw_scale': activation_hw_scale_dict,
-        'activation_sw_scale': activation_sw_scale_dict,
-        'wt_scale': wt_scale_dict,
-        'activation_hw_range_dict': activation_hw_range_dict,
-        'activation_sw_range_dict': activation_sw_range_dict,
-        'wt_range': wt_range_dict,
-        'shift': activation_shift_dict
-    }
+        scale = activation_sw_scale_dict[layer_list[0]]
+
+        # Initialize dictionaries
+        activation_hw_scale_dict = {}
+        activation_hw_scale_dict[layer_list[0]] = scale
+        activation_hw_range_dict = {}
+        activation_hw_range_dict[layer_list[0]] = {'min': activation_sw_range_dict[layer_list[0]]['min'],
+                                                'max': activation_sw_range_dict[layer_list[0]]['max']}
+        activation_shift_dict = {}
+        activation_shift_dict[layer_list[0]] = 0
+
+        for i in range(1, len(layer_list)):
+            if(verbose==1 or debug==1):
+                print(f'For layer {i}.')
+            scale_prev = scale
+            scale_accumulator = scale_prev * wt_scale_dict[layer_list[i]]
+            quant_max = activation_sw_range_dict[layer_list[i]]['max'] / scale_accumulator # q = r/scale
+            quant_exp = math.ceil(math.log2(2*quant_max)) # multiply with 2 for both signs
+            quant_poweroftwo = 2 ** quant_exp
+            shift = quant_exp - 8
+            scale = scale_accumulator*(2**shift)
+            hw_max = 127 * scale  # r = q*scale
+
+            if(verbose==1):
+                print(f'Scale accumulator: {scale_accumulator}')
+                print(f'Scale: {scale}')
+                print(f'Previous layer activation: {activation_sw_range_dict[layer_list[i-1]]['max']}')
+                print(f'Activation: {activation_sw_range_dict[layer_list[i]]['max']}')
+            if(debug==1):
+                print(f'Quant_max: {quant_max}')
+                print(f'Quant_exp: {quant_exp}, for both signs.')
+                print(f'Quant_poweroftwo: {quant_poweroftwo}, for both signs.')
+                print(f'Layer {i}: scale ratio:{(2**shift)}')
+            if(verbose==1):
+                print(f'Hw_max: {hw_max}')
+                print(f'Shift result by {shift}')
+            if(verbose==1 or debug==1):
+                print('\n')
+            
+            activation_hw_scale_dict[layer_list[i]] = scale
+            activation_hw_range_dict[layer_list[i]] = {'min': -hw_max, 'max': hw_max}
+            activation_shift_dict[layer_list[i]] = shift
+
+        complete_dict = {
+            'activation_hw_scale': activation_hw_scale_dict,
+            'activation_sw_scale': activation_sw_scale_dict,
+            'wt_scale': wt_scale_dict,
+            'activation_hw_range_dict': activation_hw_range_dict,
+            'activation_sw_range_dict': activation_sw_range_dict,
+            'wt_range': wt_range_dict,
+            'shift': activation_shift_dict
+        }
+
+    if (mode=='v' or mode=='sv') and calculate==0:
+        print(json.dumps(complete_dict, indent=4))
+        # for layer, scale in complete_dict.items():
+        #     print(f"{layer}: scale = {scale:.8f}")
+
+    # Shows message for the user to choose if they want to overwrite
+    if(ask_message==1 and (mode == 's' or mode == 'sv')):
+        while True:
+            response = input("Do you want to overwrite previous data? (y/n): ").strip().lower()
+            if response == 'y':
+                break
+            elif response == 'n':
+                if(mode == 's'):
+                    mode = ''
+                if(mode == 'sv'):
+                    mode = 'v'
+                break
+            else:
+                print("Invalid input.")
+
+    if mode=='s' or mode=='sv':
+        with open(tmp_filepath, "w") as f:
+            json.dump(activation_hw_scale_dict, f, indent=4)
+        print(f"Saved hw_scale json in: {tmp_filepath}")
+        with open(tmp_filepath, "w") as f:
+            json.dump(activation_hw_range_dict, f, indent=4)
+        print(f"Saved hw_range json in: {tmp_filepath}")
+        with open(tmp_filepath, "w") as f:
+            json.dump(activation_shift_dict, f, indent=4)
+        print(f"Saved shift json in: {tmp_filepath}")
+        with open(tmp_filepath, "w") as f:
+            json.dump(complete_dict, f, indent=4)
+        print(f"Saved complete_dict json in: {tmp_filepath}")
 
     return complete_dict
 
