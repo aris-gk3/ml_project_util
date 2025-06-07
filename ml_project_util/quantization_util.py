@@ -1320,8 +1320,9 @@ def gen_sample_paths(path_dataset='0', num_samples=40):
 ### Quantize models & evaluate
 
 # To-do
-def quant_activations(model, model_name, num_bits=8, input_shape=(224,224,3), range_path='0', mode='hw'):
-    # Only for evaluation.
+def quant_activations(model, model_name, num_bits=8, input_shape=(224,224,3), mode_func='eval', range_path='0', mode='hw'):
+    # quant: returns model with quantized weights
+    # eval: evaluates model with quantized weights & returns model with quantized weights    
     # 'sw' means quantization is run based on arbitrary symmetric ranges of max values
     # 'hw' means hw efficient quantization is run, so that scales from previous to next layer are only calculated based on shifting bits
 
@@ -1361,14 +1362,15 @@ def quant_activations(model, model_name, num_bits=8, input_shape=(224,224,3), ra
             print(f'Quantization range could not be saved in {filepath}!')
 
     # quant model and evaluate
-    quant_activation_model = clone_model_with_fake_quant(model, input_shape, range_dict)
+    quant_activation_model = clone_model_with_fake_quant(model, input_shape, range_dict, num_bits=num_bits)
     quant_activation_model.compile(optimizer='adam', loss='sparse_categorical_crossentropy', metrics=['accuracy'])
-    model_evaluation_precise(quant_activation_model)
+    if (mode_func=='eval'):
+        model_evaluation_precise(quant_activation_model)
+
+    return model
 
 
-# To-do
 def quant_weights(model, model_name, num_bits=8, range_path='0', quant='symmetric', mode='eval', batch_len=157):
-    # Only for evaluation.
     # quant: returns model with quantized weights
     # eval: evaluates model with quantized weights & returns model with quantized weights
     if(quant!='symmetric'):
