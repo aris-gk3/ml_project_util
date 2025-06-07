@@ -1385,18 +1385,20 @@ def quant_weights(model, model_name, num_bits=8, range_path='0', quant='symmetri
     try:
         with open(filepath, 'r') as f:
             weight_ranges = json.load(f)
-        print(f'Type: {type(weight_ranges)}')
         print(f'Weight quantization range has been read from {filepath}.')
     except:
         print(f'Weight quantization not found in {filepath}, searching now...')
         weight_ranges = wt_range_search(model, model_name)
 
+    print(f'Type: {type(weight_ranges)}')
+    
     # Clone weights to new model
     for layer in model.layers:
         if hasattr(layer, "get_weights") and hasattr(layer, "set_weights"):
             weights = layer.get_weights()
             if weights and layer.name in weight_ranges:
                 layer_ranges = weight_ranges[layer.name]['weight']
+                print(type(layer_ranges))
                 print(layer_ranges)
                 new_weights = [
                     quantize_tensor_symmetric(w, w_range, num_bits=num_bits)
