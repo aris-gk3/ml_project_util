@@ -1125,7 +1125,8 @@ def activation_hw_search(activation_sw_range_dict, activation_sw_scale_dict, wt_
     activation_shift_dict[layer_list[0]] = 0
 
     for i in range(1, len(layer_list)):
-        print(f'For layer {i}.')
+        if verbose==1:
+            print(f'For layer {i}.')
         scale_prev = scale
         scale_accumulator = scale_prev * wt_scale_dict[layer_list[i]]
         quant_max = activation_sw_range_dict[layer_list[i]]['max'] / scale_accumulator # q = r/scale
@@ -1169,83 +1170,6 @@ def activation_hw_search(activation_sw_range_dict, activation_sw_scale_dict, wt_
     }
 
     return complete_dict
-
-# To-do
-def hw_range_search(model, model_name, input_range, force=0, verbose=1,
-                    activation_sw_range_path='0',
-                    wt_range_path='0'):
-    
-    # Get activation sw range in dictionary
-    if(activation_sw_range_path == '0'):
-        BASE_PATH, _, _, _, _ = path_definition()
-        short_name = model_name[:-10]
-        filepath = f'{BASE_PATH}/Docs_Reports/Quant/Ranges/{short_name}_activation_sw_range.json'
-    try:
-        with open(filepath, 'r') as f:
-            activation_sw_range_dict = json.load(f)
-        print(f'sw activation quantization range has been read from {filepath}.')
-    except:
-        print(f'Quantization range not found in {filepath}, searching...')
-        sampled_files = gen_sample_paths()
-        activation_sw_range_dict = activation_range_search(sampled_files, model, model_name, filepath=activation_sw_range_path)
-
-    # Get weight, bias range in dictionary
-    if(wt_range_path == '0'):
-        BASE_PATH, _, _, _, _ = path_definition()
-        short_name = model_name[:-10]
-        filepath = f'{BASE_PATH}/Docs_Reports/Quant/Ranges/{short_name}_wt_range.json'
-    else:
-        filepath = wt_range_path
-    try:
-        with open(filepath, 'r') as f:
-            wt_range_dict = json.load(f)
-        print(f'Weight quantization range has been read from {filepath}.')
-    except:
-        print(f'Quantization range not found in {filepath}, searching...')
-        wt_range_dict = wt_range_search(model, model_name, mode='sv', filepath=wt_range_path)
-
-    # Find scales of weight per layer
-    def compute_symmetric_int8_wt_scales(range_dict):
-        scale_dict = {}
-        for layer_name, layer_data in range_dict.items():
-            if "weight" in layer_data:
-                w_min = layer_data["weight"]["min"]
-                w_max = layer_data["weight"]["max"]
-                max_abs = max(abs(w_min), abs(w_max))
-                scale = max_abs / 127 # scale = r/q
-                scale_dict[layer_name] = scale
-        return scale_dict
-    wt_scale_dict = compute_symmetric_int8_wt_scales(wt_range_dict)
-    # for layer, scale in wt_scale_dict.items():
-    #     print(f"{layer}: scale = {scale:.8f}")
-
-    # Find scales of activations per layer
-    def compute_symmetric_int8_activation_scales(range_dict):
-        # q = r/scale
-        scale_dict = {}
-        for layer_name, layer_data in range_dict.items():
-            w_min = layer_data["min"]
-            w_max = layer_data["max"]
-            max_abs = max(abs(w_min), abs(w_max))
-            scale = max_abs / 127 # scale = r/q
-            scale_dict[layer_name] = scale
-        return scale_dict
-    activation_sw_scale_dict = compute_symmetric_int8_activation_scales(activation_sw_range_dict)
-    # for layer, scale in activation_sw_scale_dict.items():
-    #     print(f"{layer}: scale = {scale:.8f}")
-
-    # read activation range and wt range if they exist, otherwise find, print and save them
-
-    # save hw weight & find weight scales
-
-    # find scales of hw wt (same as non hw)
-
-    # step by step for each layer find a) activation scales b) activation hw range c) shift per layer
-
-    # see what to do with bias of weights, probably needs float scale, but this is okay since it happens offline (not at inference)
-
-    # save range, scale, shift json
-    return 0
 
 
 def hw_range_search_old(model, input_range, range_dict_path, shift_range_path, force=0):
