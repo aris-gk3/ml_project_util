@@ -1107,7 +1107,7 @@ def activation_sw_scale_search(activation_sw_range_dict, model_name, filepath='0
     return activation_sw_scale_dict
 
 
-def activation_hw_search(model_name, activation_sw_range_dict, activation_sw_scale_dict, wt_range_dict, wt_scale_dict, debug=1, force=1, filepath='0', mode='sv'):
+def activation_hw_search(model_name, activation_sw_range_dict, activation_sw_scale_dict, wt_range_dict, wt_scale_dict, debug=0, force=0, filepath='0', mode='sv'):
     
     # Find correct path
     if(filepath == '0'):
@@ -1206,8 +1206,6 @@ def activation_hw_search(model_name, activation_sw_range_dict, activation_sw_sca
 
     if (mode=='v' or mode=='sv') and calculate==0:
         print(json.dumps(complete_dict, indent=4))
-        # for layer, scale in complete_dict.items():
-        #     print(f"{layer}: scale = {scale:.8f}")
 
     # Shows message for the user to choose if they want to overwrite
     if(ask_message==1 and (mode == 's' or mode == 'sv')):
@@ -1240,6 +1238,20 @@ def activation_hw_search(model_name, activation_sw_range_dict, activation_sw_sca
 
     return complete_dict
 
+
+def complete_dict_search(model, model_name, force=0, debug=0, mode='sv', filepath='0'):
+    sampled_files = gen_sample_paths()
+    activation_sw_range_dict = activation_range_search(sampled_files, model, model_name, mode=mode, force=force)
+
+    wt_range_dict = wt_range_search(model, model_name, mode=mode)
+
+    wt_scale_dict = wt_scale_search(wt_range_dict, model_name, mode=mode)
+
+    activation_sw_scale_dict = activation_sw_scale_search(activation_sw_range_dict, model_name, mode=mode)
+
+    complete_dict = activation_hw_search(model_name, activation_sw_range_dict, activation_sw_scale_dict, wt_range_dict, wt_scale_dict, debug=debug, force=force, mode=mode, filepath=filepath)
+
+    return complete_dict
 
 def hw_range_search_old(model, input_range, range_dict_path, shift_range_path, force=0):
     input_min = input_range[0]
