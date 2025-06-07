@@ -1390,16 +1390,12 @@ def quant_weights(model, model_name, num_bits=8, range_path='0', quant='symmetri
         print(f'Weight quantization not found in {filepath}, searching now...')
         weight_ranges = wt_range_search(model, model_name)
 
-    print(f'Type: {type(weight_ranges)}')
-
     # Clone weights to new model
     for layer in model.layers:
         if hasattr(layer, "get_weights") and hasattr(layer, "set_weights"):
             weights = layer.get_weights()
             if weights and layer.name in weight_ranges:
                 layer_ranges = weight_ranges[layer.name]['weight']
-                print(type(layer_ranges))
-                print(layer_ranges)
                 new_weights = [
                     quantize_tensor_symmetric(w, layer_ranges, num_bits=num_bits)
                     for w in weights
@@ -1419,7 +1415,6 @@ def quantize_tensor_symmetric(w, w_range, num_bits=8):
     qmin = -(2 ** (num_bits - 1) - 1)  # -127 for int8
     qmax = (2 ** (num_bits - 1) - 1)   # +127 for int8
 
-    print(f'{type(w_range)},{w_range}')
     w_min = w_range["min"]
     w_max = w_range["max"]
 
