@@ -1391,7 +1391,7 @@ def quant_weights(model, model_name, num_bits=8, range_path='0', quant='symmetri
         weight_ranges = wt_range_search(model, model_name)
 
     print(f'Type: {type(weight_ranges)}')
-    
+
     # Clone weights to new model
     for layer in model.layers:
         if hasattr(layer, "get_weights") and hasattr(layer, "set_weights"):
@@ -1402,7 +1402,7 @@ def quant_weights(model, model_name, num_bits=8, range_path='0', quant='symmetri
                 print(layer_ranges)
                 new_weights = [
                     quantize_tensor_symmetric(w, w_range, num_bits=num_bits)
-                    for w, w_range in zip(weights, layer_ranges)
+                    for w in weights
                 ]
                 layer.set_weights(new_weights)
 
