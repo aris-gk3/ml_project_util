@@ -1380,7 +1380,6 @@ def quant_weights(model, model_name, num_bits=8, range_path='0', quant='symmetri
         BASE_PATH, _, _, _, _ = path_definition()
         short_name = model_name[:-10]
         filepath = f'{BASE_PATH}/Docs_Reports/Quant/Ranges/{short_name}_wt_range.json'
-        filepath = f''
     else:
         filepath = range_path
     try:
