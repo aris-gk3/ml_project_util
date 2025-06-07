@@ -1319,35 +1319,34 @@ def gen_sample_paths(path_dataset='0', num_samples=40):
 
 ### Quantize models & evaluate
 
-# To-do
-def quant_activations(model, model_name, num_bits=8, input_shape=(224,224,3), mode_func='eval', range_path='0', mode='hw'):
+def quant_activations(model, model_name, num_bits=8, input_shape=(224,224,3), mode='eval', range_path='0', design='hw', batch_len=157):
     # quant: returns model with quantized weights
     # eval: evaluates model with quantized weights & returns model with quantized weights    
     # 'sw' means quantization is run based on arbitrary symmetric ranges of max values
     # 'hw' means hw efficient quantization is run, so that scales from previous to next layer are only calculated based on shifting bits
 
     # Show mode message
-    if(mode=='sw'):
+    if(design=='sw'):
         print('Quantization on arbitrary symmetric ranges is applied.')
-    elif(mode=='hw'):
+    elif(design=='hw'):
         print('Quantization on symmetric ranges that enable shifting on interlayer scaling is applied.')
 
     # Read appropriate ranges
     if(range_path == '0'):
         BASE_PATH, _, _, _, _ = path_definition()
         short_name = model_name[:-10]
-        filepath = f'{BASE_PATH}/Docs_Reports/Quant/Ranges/{short_name}_activation_{mode}_range.json'
+        filepath = f'{BASE_PATH}/Docs_Reports/Quant/Ranges/{short_name}_activation_{design}_range.json'
     else:
         filepath = range_path
 
     try:
         with open(filepath, 'r') as f:
             range_dict = json.load(f)
-        print(f'{mode} activation quantization range has been read from {filepath}.')
+        print(f'{design} activation quantization range has been read from {filepath}.')
     except:
         print(f'Quantization range not found in {filepath}, recalculating.')
         # calculate and save json with ranges
-        if(mode=='hw'):
+        if(design=='hw'):
             complete_dict = complete_dict_search(model, model_name, force=0, debug=0, mode='s', filepath='0')
             range_dict = complete_dict["activation_hw_range_dict"]
             # function that calculates hw range
@@ -1357,7 +1356,7 @@ def quant_activations(model, model_name, num_bits=8, input_shape=(224,224,3), mo
         # Save json
         try:
             with open(filepath, 'w') as f:
-                range_dict = json.dump(f, indent=4)
+                json.dump(range_dict, f, indent=4)
             print(f'Quantization range saved in {filepath}!')
         except:
             print(f'Quantization range could not be saved in {filepath}!')
@@ -1365,10 +1364,10 @@ def quant_activations(model, model_name, num_bits=8, input_shape=(224,224,3), mo
     # quant model and evaluate
     quant_activation_model = clone_model_with_fake_quant(model, input_shape, range_dict, num_bits=num_bits)
     quant_activation_model.compile(optimizer='adam', loss='sparse_categorical_crossentropy', metrics=['accuracy'])
-    if (mode_func=='eval'):
-        model_evaluation_precise(quant_activation_model)
+    if (mode=='eval'):
+        model_evaluation_precise(quant_activation_model, batch_len=batch_len)
 
-    return model
+    return model, acc, loss
 
 
 def quant_weights(model, model_name, num_bits=8, range_path='0', quant='symmetric', mode='eval', batch_len=157):
@@ -1407,9 +1406,63 @@ def quant_weights(model, model_name, num_bits=8, range_path='0', quant='symmetri
 
     # evaluate new model
     if(mode=='eval'):
-       model_evaluation_precise(model, batch_len=batch_len)
+       acc, loss= model_evaluation_precise(model, batch_len=batch_len)
 
-    return model
+    return model, acc, loss
+
+
+def quant_model(model, model_name, num_bits=8, design='hw', batch_len=157, force=0):
+    # checks if for bw there is already a value in json, hanldes it as above
+    BASE_PATH, _, _, _, _ = path_definition()
+    short_name = model_name[:-10]
+    tmp_filepath = f"{BASE_PATH}/Docs_Reports/Quant/Metrics/{short_name}_metrics_quant_{design}.json"
+
+    ask_message = 0
+    save = 1
+    try:
+        with open(tmp_filepath, 'r') as f:
+            metric_dict = json.load(f)
+        if(isinstance(metric_dict[f'{num_bits}b']['accuracy'], float)):
+            print(f'Read input range json from {tmp_filepath}')
+            if(force==1):
+                calculate = 1
+                ask_message = 1
+            else:
+                calculate = 0
+                ask_message = 0
+    except:
+        calculate = 1
+        ask_message = 0
+
+    if(calculate==1):
+        qw_model, _, _ = quant_weights(model, model_name, num_bits=num_bits, range_path='0', quant='symmetric', mode='quant', batch_len=batch_len)
+        qwa_model, acc, loss = quant_activations(qw_model, model_name, num_bits=num_bits, input_shape=(224,224,3), mode='eval', range_path='0', design='hw', batch_len=batch_len)
+
+    # Shows message for the user to choose if they want to overwrite
+    if(ask_message==1):
+        while True:
+            response = input("Do you want to overwrite previous data? (y/n): ").strip().lower()
+            if response == 'y':
+                save = 1
+            elif response == 'n':
+                save = 0
+            else:
+                print("Invalid input.")
+
+    if(save==1):
+        with open(tmp_filepath, 'r') as f:
+            metric_dict = json.load(f)
+        metric_dict[f'{num_bits}b'] = {'accuracy': acc, 'loss': loss}
+    
+    return qwa_model
+
+
+def quant_bw_search():
+
+    for i in range(6,32):
+        quant_model(num_bits=i)
+
+    # plot the json
 
 
 ### Model transformation utilities

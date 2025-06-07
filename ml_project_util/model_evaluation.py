@@ -68,3 +68,5 @@ def model_evaluation_precise(model, batch_len=157):
 
     print(f"Precise val accuracy: {final_acc:.5f}")
     print(f"Precise val loss: {final_loss:.5f}")
+
+    return final_acc, final_loss
