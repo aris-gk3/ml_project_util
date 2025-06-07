@@ -1401,7 +1401,7 @@ def quant_weights(model, model_name, num_bits=8, range_path='0', quant='symmetri
                 print(type(layer_ranges))
                 print(layer_ranges)
                 new_weights = [
-                    quantize_tensor_symmetric(w, w_range, num_bits=num_bits)
+                    quantize_tensor_symmetric(w, layer_ranges, num_bits=num_bits)
                     for w in weights
                 ]
                 layer.set_weights(new_weights)
