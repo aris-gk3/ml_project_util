@@ -1396,6 +1396,7 @@ def quant_weights(model, model_name, num_bits=8, range_path='0', quant='symmetri
             weights = layer.get_weights()
             if weights and layer.name in weight_ranges:
                 layer_ranges = weight_ranges[layer.name]
+                print(layer_ranges)
                 new_weights = [
                     quantize_tensor_symmetric(w, w_range, num_bits=num_bits)
                     for w, w_range in zip(weights, layer_ranges)
