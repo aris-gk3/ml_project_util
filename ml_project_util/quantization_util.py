@@ -1417,7 +1417,6 @@ def quantize_tensor_symmetric(w, w_range, num_bits=8):
     qmin = -(2 ** (num_bits - 1) - 1)  # -127 for int8
     qmax = (2 ** (num_bits - 1) - 1)   # +127 for int8
 
-    w_range = json.loads(w_range)
     print(f'{type(w_range),{w_range}}')
     w_min = w_range["min"]
     w_max = w_range["max"]
