@@ -1415,8 +1415,8 @@ def quantize_tensor_symmetric(w, w_range, num_bits=8):
     qmin = -(2 ** (num_bits - 1) - 1)  # -127 for int8
     qmax = (2 ** (num_bits - 1) - 1)   # +127 for int8
 
-    w_min = w_range["min"]
-    w_max = w_range["max"]
+    w_min = w_range['weight']["min"]
+    w_max = w_range['weight']["max"]
 
     # Use symmetric range centered at 0
     max_abs = max(abs(w_min), abs(w_max))
