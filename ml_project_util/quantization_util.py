@@ -1395,16 +1395,57 @@ def quant_weights(model, model_name, num_bits=8, range_path='0', quant='symmetri
         print(f'Weight quantization not found in {filepath}, searching now...')
         weight_ranges = wt_range_search(model, model_name)
 
-    # Clone weights to new model
+    # Get activation range from json
+    activation_range_filepath = f'{BASE_PATH}/Docs_Reports/Quant/Ranges/{short_name}_activation_hw_range.json'
+    with open(activation_range_filepath, 'r') as f:
+        activation_ranges = json.load(f)
+
+    # # Clone weights to new model
+    # for layer in model.layers:
+    #     if hasattr(layer, "get_weights") and hasattr(layer, "set_weights"):
+    #         weights = layer.get_weights()
+    #         if weights and layer.name in weight_ranges:
+    #             layer_ranges = weight_ranges[layer.name]['weight']
+    #             new_weights = [
+    #                 quantize_tensor_symmetric(w, layer_ranges, num_bits=num_bits)
+    #                 for w in weights
+    #             ]
+    #             layer.set_weights(new_weights)
+
+    # # This would quantize biases based on their range
+    # for layer in model.layers:
+    #     if hasattr(layer, "get_weights") and hasattr(layer, "set_weights"):
+    #         weights = layer.get_weights()
+    #         if weights and layer.name in weight_ranges:
+    #             layer_range_info = weight_ranges[layer.name]
+    #             new_weights = []
+    #             for i, w in enumerate(weights):
+    #                 if i == 0:
+    #                     # Weight tensor (e.g. kernel)
+    #                     range_info = layer_range_info['weight']
+    #                 else:
+    #                     # Bias tensor
+    #                     range_info = layer_range_info['bias']
+    #                 quantized = quantize_tensor_symmetric(w, range_info, num_bits=num_bits)
+    #                 new_weights.append(quantized)
+    #             layer.set_weights(new_weights)
+
+    # This would quantize biases based on layer output
     for layer in model.layers:
         if hasattr(layer, "get_weights") and hasattr(layer, "set_weights"):
             weights = layer.get_weights()
             if weights and layer.name in weight_ranges:
-                layer_ranges = weight_ranges[layer.name]['weight']
-                new_weights = [
-                    quantize_tensor_symmetric(w, layer_ranges, num_bits=num_bits)
-                    for w in weights
-                ]
+                layer_range_info = weight_ranges[layer.name]
+                new_weights = []
+                for i, w in enumerate(weights):
+                    if i == 0:
+                        # Weight tensor (e.g. kernel)
+                        range_info = layer_range_info['weight']
+                    else:
+                        # Bias tensor
+                        range_info = activation_ranges[layer.name]
+                    quantized = quantize_tensor_symmetric(w, range_info, num_bits=num_bits)
+                    new_weights.append(quantized)
                 layer.set_weights(new_weights)
 
     # evaluate new model
