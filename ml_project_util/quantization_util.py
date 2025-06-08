@@ -1373,7 +1373,7 @@ def quant_activations(model, model_name, num_bits=8, input_shape=(224,224,3), mo
     return model, acc, loss
 
 
-def quant_weights(model, model_name, num_bits=8, range_path='0', quant='symmetric', mode='eval', batch_len=157):
+def quant_weights(model, model_name, num_bits=8, range_path='0', quant='symmetric', mode='eval', design='hw', batch_len=157):
     # quant: returns model with quantized weights
     # eval: evaluates model with quantized weights & returns model with quantized weights
     if(quant!='symmetric'):
@@ -1396,7 +1396,7 @@ def quant_weights(model, model_name, num_bits=8, range_path='0', quant='symmetri
         weight_ranges = wt_range_search(model, model_name)
 
     # Get activation range from json
-    activation_range_filepath = f'{BASE_PATH}/Docs_Reports/Quant/Ranges/{short_name}_activation_hw_range.json'
+    activation_range_filepath = f'{BASE_PATH}/Docs_Reports/Quant/Ranges/{short_name}_activation_{design}_range.json'
     with open(activation_range_filepath, 'r') as f:
         activation_ranges = json.load(f)
 
@@ -1430,23 +1430,23 @@ def quant_weights(model, model_name, num_bits=8, range_path='0', quant='symmetri
     #                 new_weights.append(quantized)
     #             layer.set_weights(new_weights)
 
-    # # This would quantize biases based on layer output
-    # for layer in model.layers:
-    #     if hasattr(layer, "get_weights") and hasattr(layer, "set_weights"):
-    #         weights = layer.get_weights()
-    #         if weights and layer.name in weight_ranges:
-    #             layer_range_info = weight_ranges[layer.name]
-    #             new_weights = []
-    #             for i, w in enumerate(weights):
-    #                 if i == 0:
-    #                     # Weight tensor (e.g. kernel)
-    #                     range_info = layer_range_info['weight']
-    #                 else:
-    #                     # Bias tensor
-    #                     range_info = activation_ranges[layer.name]
-    #                 quantized = quantize_tensor_symmetric(w, range_info, num_bits=num_bits)
-    #                 new_weights.append(quantized)
-    #             layer.set_weights(new_weights)
+    # This would quantize biases based on layer output
+    for layer in model.layers:
+        if hasattr(layer, "get_weights") and hasattr(layer, "set_weights"):
+            weights = layer.get_weights()
+            if weights and layer.name in weight_ranges:
+                layer_range_info = weight_ranges[layer.name]
+                new_weights = []
+                for i, w in enumerate(weights):
+                    if i == 0:
+                        # Weight tensor (e.g. kernel)
+                        range_info = layer_range_info['weight']
+                    else:
+                        # Bias tensor
+                        range_info = activation_ranges[layer.name]
+                    quantized = quantize_tensor_symmetric(w, range_info, num_bits=num_bits)
+                    new_weights.append(quantized)
+                layer.set_weights(new_weights)
 
     # evaluate new model
     if(mode=='eval'):
@@ -1482,8 +1482,8 @@ def quant_model(model, model_name, num_bits=8, design='hw', batch_len=157, force
         ask_message = 0
 
     if(calculate==1):
-        qw_model, _, _ = quant_weights(model, model_name, num_bits=num_bits, range_path='0', quant='symmetric', mode='quant', batch_len=batch_len)
-        qwa_model, acc, loss = quant_activations(qw_model, model_name, num_bits=num_bits, input_shape=(224,224,3), mode='eval', range_path='0', design='hw', batch_len=batch_len)
+        qw_model, _, _ = quant_weights(model, model_name, num_bits=num_bits, mode='quant', design=design, batch_len=batch_len)
+        qwa_model, acc, loss = quant_activations(qw_model, model_name, num_bits=num_bits, mode='eval', design=design, batch_len=batch_len)
 
     # Shows message for the user to choose if they want to overwrite
     if(ask_message==1):
