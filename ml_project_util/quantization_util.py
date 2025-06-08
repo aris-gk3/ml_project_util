@@ -1505,6 +1505,9 @@ def quant_model(model, model_name, num_bits=8, design='hw', batch_len=157, force
         except:
             metric_dict = {}
         metric_dict[f'{num_bits}b'] = {'accuracy': acc, 'loss': loss}
+
+        with open(tmp_filepath, 'w') as f:
+            json.dump(metric_dict, f, indent=4)
     
     return qwa_model
 
