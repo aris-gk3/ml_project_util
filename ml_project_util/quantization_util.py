@@ -1485,6 +1485,8 @@ def quant_model(model, model_name, num_bits=8, design='hw', batch_len=157, force
     if(calculate==1):
         qw_model, _, _ = quant_weights(model, model_name, num_bits=num_bits, mode='quant', design=design, batch_len=batch_len)
         qwa_model, acc, loss = quant_activations(qw_model, model_name, num_bits=num_bits, mode='eval', design=design, batch_len=batch_len)
+    else:
+        qwa_model = None
 
     # Shows message for the user to choose if they want to overwrite
     if(ask_message==1):
