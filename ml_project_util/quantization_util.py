@@ -1477,6 +1477,7 @@ def quant_model(model, model_name, num_bits=8, design='hw', batch_len=157, force
             else:
                 calculate = 0
                 ask_message = 0
+                save = 0
     except:
         calculate = 1
         ask_message = 0
