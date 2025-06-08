@@ -1456,8 +1456,11 @@ def quant_model(model, model_name, num_bits=8, design='hw', batch_len=157, force
                 print("Invalid input.")
 
     if(save==1):
-        with open(tmp_filepath, 'r') as f:
-            metric_dict = json.load(f)
+        try:
+            with open(tmp_filepath, 'r') as f:
+                metric_dict = json.load(f)
+        except:
+            metric_dict = {}
         metric_dict[f'{num_bits}b'] = {'accuracy': acc, 'loss': loss}
     
     return qwa_model
@@ -1517,6 +1520,33 @@ class SymmetricFakeQuantLayer(tf.keras.layers.Layer):
         )
 
 
+class SymmetricFakeQuantLayer_custom(tf.keras.layers.Layer):
+    def __init__(self, max_abs_val=6.0, num_bits=8, narrow_range=True, **kwargs):
+        super().__init__(**kwargs)
+        self.max_abs_val = max_abs_val
+        self.num_bits = num_bits
+        self.narrow_range = narrow_range
+
+    def call(self, inputs):
+        min_val = -self.max_abs_val
+        max_val = self.max_abs_val
+
+        qmin = 1.0 if self.narrow_range else 0.0
+        qmax = 2.0**self.num_bits - 1.0
+
+        scale = (max_val - min_val) / (qmax - qmin)
+        zero_point = 0.0  # Symmetric quantization: zero-point is zero
+
+        # Fake quantize: quantize then dequantize
+        x_clipped = tf.clip_by_value(inputs, min_val, max_val)
+        x_scaled = x_clipped / scale
+        x_rounded = tf.round(x_scaled)
+        x_q = tf.clip_by_value(x_rounded, qmin, qmax)
+        x_dequantized = x_q * scale
+
+        return x_dequantized
+
+
 def clone_model_with_fake_quant(original_model, input_shape, range_dict, num_bits=8):
     new_model = Sequential()
     layer_mapping = []
@@ -1535,7 +1565,8 @@ def clone_model_with_fake_quant(original_model, input_shape, range_dict, num_bit
             tmp_max = range_dict[quant_layers_list[quant_layer]]['max']
             abs_max = abs(tmp_min) if abs(tmp_min)>tmp_max else tmp_max
             #new_model.add(FakeQuantLayer(min_val=tmp_min, max_val=tmp_max))
-            new_model.add(SymmetricFakeQuantLayer(max_abs_val=abs_max, num_bits=num_bits))
+            # new_model.add(SymmetricFakeQuantLayer(max_abs_val=abs_max, num_bits=num_bits))
+            new_model.add(SymmetricFakeQuantLayer_custom(max_abs_val=abs_max, num_bits=num_bits))
             quant_layer = quant_layer + 1
         # Clone layer from config
         new_model.add(cloned_layer)
