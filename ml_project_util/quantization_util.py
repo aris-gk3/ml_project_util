@@ -1366,11 +1366,11 @@ def quant_activations(model, model_name, num_bits=8, input_shape=(224,224,3), mo
     quant_activation_model.compile(optimizer='adam', loss='sparse_categorical_crossentropy', metrics=['accuracy'])
     if (mode=='eval'):
         acc, loss = model_evaluation_precise(quant_activation_model, batch_len=batch_len)
+    else:
+        acc = None
+        loss = None
 
-    acc = None
-    loss = None
-
-    return model, acc, loss
+    return quant_activation_model, acc, loss
 
 
 def quant_weights(model, model_name, num_bits=8, range_path='0', quant='symmetric', mode='eval', design='hw', batch_len=157):
