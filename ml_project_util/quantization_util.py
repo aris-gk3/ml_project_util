@@ -1504,7 +1504,7 @@ def quant_model(model, model_name, num_bits=8, design='hw', batch_len=157, force
                 metric_dict = json.load(f)
         except:
             metric_dict = {}
-        metric_dict[f'{num_bits}b'] = {'accuracy': acc, 'loss': loss}
+        metric_dict[f'{num_bits}b'] = {'accuracy': float(acc), 'loss': float(loss)}
 
         with open(tmp_filepath, 'w') as f:
             json.dump(metric_dict, f, indent=4)
