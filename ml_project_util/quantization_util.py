@@ -1450,8 +1450,10 @@ def quant_model(model, model_name, num_bits=8, design='hw', batch_len=157, force
             response = input("Do you want to overwrite previous data? (y/n): ").strip().lower()
             if response == 'y':
                 save = 1
+                break
             elif response == 'n':
                 save = 0
+                break
             else:
                 print("Invalid input.")
 
@@ -1521,6 +1523,32 @@ class SymmetricFakeQuantLayer(tf.keras.layers.Layer):
 
 
 class SymmetricFakeQuantLayer_custom(tf.keras.layers.Layer):
+    def __init__(self, max_abs_val=6.0, num_bits=8, narrow_range=True, **kwargs):
+        super().__init__(**kwargs)
+        self.max_abs_val = max_abs_val
+        self.num_bits = num_bits
+        self.narrow_range = narrow_range
+
+    def call(self, inputs):
+        # Symmetric int quant range
+        if self.narrow_range:
+            qmin = - (2 ** (self.num_bits - 1) - 1)
+        else:
+            qmin = - (2 ** (self.num_bits - 1))
+        qmax = (2 ** (self.num_bits - 1)) - 1
+
+        scale = self.max_abs_val / qmax
+
+        x_clipped = tf.clip_by_value(inputs, -self.max_abs_val, self.max_abs_val)
+        x_scaled = x_clipped / scale
+        x_rounded = tf.round(x_scaled)
+        x_q = tf.clip_by_value(x_rounded, qmin, qmax)
+        x_dequantized = x_q * scale
+
+        return x_dequantized
+
+
+class SymmetricFakeQuantLayer_custom_old(tf.keras.layers.Layer):
     def __init__(self, max_abs_val=6.0, num_bits=8, narrow_range=True, **kwargs):
         super().__init__(**kwargs)
         self.max_abs_val = max_abs_val
