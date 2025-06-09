@@ -1,4 +1,6 @@
 import os
+import random
+import shutil
 import tensorflow as tf
 from tensorflow.keras import layers # type: ignore
 from tensorflow.keras.utils import image_dataset_from_directory # type: ignore
