@@ -24,7 +24,9 @@ def subsample_imgdir(num_samples=100):
     import os
     import random
 
-    _, PATH_DATASET, _, _, _ = path_definition()
+    dict = path_definition()
+    PATH_DATASET = dict['PATH_DATASET']
+
     img_dir1 = f'{PATH_DATASET}/DogConverted'
     img_dir2 = f'{PATH_DATASET}/CatConverted'
 
@@ -209,7 +211,8 @@ def activation_dist_plots(sampled_files, model, model_name, mode='sv', filepath=
         plt.tight_layout()
         if mode=='s' or mode=='sv':
             if filepath=='0':
-                BASE_PATH, _, _, _, _ = path_definition()
+                dict = path_definition()
+                BASE_PATH = dict['BASE_PATH']
                 parent_name = model_name[:3]
                 short_name = model_name[:-10]
                 tmp_filepath = f"{BASE_PATH}/Docs_Reports/AnalysisPlots/{parent_name}/{short_name}_layer{i:02d}_activation.png"
@@ -228,7 +231,8 @@ def activation_dist_plots(sampled_files, model, model_name, mode='sv', filepath=
 
 def activation_range_plot(sampled_files, model, model_name, mode='sv', filepath='0', force=0):
     try:
-        BASE_PATH, _, _, _, _ = path_definition()
+        dict = path_definition()
+        BASE_PATH = dict['BASE_PATH']
         short_name = model_name[:-10]
         testpath = f"{BASE_PATH}/Docs_Reports/Quant/Ranges/{short_name}_activation_range.json"
         with open(testpath) as f:
@@ -261,7 +265,8 @@ def activation_range_plot(sampled_files, model, model_name, mode='sv', filepath=
     # Save and/or show the plot
     if mode=='s' or mode=='sv':
         if filepath=='0':
-            BASE_PATH, _, _, _, _ = path_definition()
+            dict = path_definition()
+            BASE_PATH = dict['BASE_PATH']
             parent_name = model_name[:3]
             short_name = model_name[:-10]
             filepath = f"{BASE_PATH}/Docs_Reports/AnalysisPlots/{parent_name}/{short_name}_activation_range.png"
@@ -294,7 +299,8 @@ def wt_dist_plots(model, model_name, mode='sv', filepath='0', force=0):
                     flat_biases = weights[1].flatten()
                     bias_distributions[layer.name] = flat_biases
 
-    BASE_PATH, PATH_DATASET, PATH_RAWDATA, PATH_JOINEDDATA, PATH_SAVEDMODELS = path_definition()
+    dict = path_definition()
+    BASE_PATH = dict['BASE_PATH']
     parent_name = model_name[:3]
     short_name = model_name[:-10]
     # Plot weight distributions
@@ -388,7 +394,8 @@ def activation_violin_plot(sampled_files, model, model_name, mode='sv', filepath
     if mode=='s' or mode=='sv':
         # Find correct file path
         if filepath=='0':
-            BASE_PATH, _, _, _, _ = path_definition()
+            dict = path_definition()
+            BASE_PATH = dict['BASE_PATH']
             parent_name = model_name[:3]
             short_name = model_name[:-10]
             filepath = f"{BASE_PATH}/Docs_Reports/AnalysisPlots/{parent_name}/{short_name}_activation_violin.png"
@@ -452,7 +459,8 @@ def wt_violin_plot(model, model_name, mode='sv', filepath='0', force=0):
     if mode=='s' or mode=='sv':
         # Find correct file path
         if filepath=='0':
-            BASE_PATH, _, _, _, _ = path_definition()
+            dict = path_definition()
+            BASE_PATH = dict['BASE_PATH']
             parent_name = model_name[:3]
             short_name = model_name[:-10]
             filepath = f"{BASE_PATH}/Docs_Reports/AnalysisPlots/{parent_name}/{short_name}_wtbias_violin.png"
@@ -510,7 +518,8 @@ def activation_box_plot(sampled_files, model, model_name, mode='sv', filepath='0
     if mode=='s' or mode=='sv':
         # Find correct file path
         if filepath=='0':
-            BASE_PATH, _, _, _, _ = path_definition()
+            dict = path_definition()
+            BASE_PATH = dict['BASE_PATH']
             parent_name = model_name[:3]
             short_name = model_name[:-10]
             filepath = f"{BASE_PATH}/Docs_Reports/AnalysisPlots/{parent_name}/{short_name}_activation_box.png"
@@ -576,7 +585,8 @@ def wt_box_plot(model, model_name, mode='sv', filepath='0', force=0):
     if mode=='s' or mode=='sv':
         # Find correct file path
         if filepath=='0':
-            BASE_PATH, _, _, _, _ = path_definition()
+            dict = path_definition()
+            BASE_PATH = dict['BASE_PATH']
             parent_name = model_name[:3]
             short_name = model_name[:-10]
             filepath = f"{BASE_PATH}/Docs_Reports/AnalysisPlots/{parent_name}/{short_name}_wtbias_box.png"
@@ -643,7 +653,8 @@ def wt_histogram_ranges(model, model_name, mode='sv', filepath='0', force=0):
     if mode=='s' or mode=='sv':
         # Find correct file path
         if filepath=='0':
-            BASE_PATH, _, _, _, _ = path_definition()
+            dict = path_definition()
+            BASE_PATH = dict['BASE_PATH']
             parent_name = model_name[:3]
             short_name = model_name[:-10]
             filepath = f"{BASE_PATH}/Docs_Reports/AnalysisPlots/{parent_name}/{short_name}_wtbias_hist.png"
@@ -659,13 +670,14 @@ def wt_histogram_ranges(model, model_name, mode='sv', filepath='0', force=0):
 
 ### Quantization utilities
 
-def input_range(dataset_path='0', mode='v', num_samples=300, filepath='0',force=0):
+def input_range(mode='v', num_samples=300, filepath='0',force=0):
     # v: prints input range
     # force: 0 -> if file exists read from path & return, if it doesn't exist calculate & write, return
     #        1 -> calculate &  return, if file exists, ask if you want to overwrite
 
     if(filepath == '0'):
-        BASE_PATH, _, _, _, _ = path_definition()
+        dict = path_definition()
+        BASE_PATH = dict['BASE_PATH']
         tmp_filepath = f"{BASE_PATH}/Docs_Reports/Quant/Ranges/input_range.json"
     else:
         tmp_filepath = filepath
@@ -695,10 +707,6 @@ def input_range(dataset_path='0', mode='v', num_samples=300, filepath='0',force=
     if(calculate == 1):
         if(mode=='v' or mode=='sv'):
             print('Calculating the Input Range...')
-        if(dataset_path == '0'):
-            _, PATH_DATASET, _, _, _ = path_definition()
-        else:
-            PATH_DATASET = dataset_path
         
         global_min = tf.constant(float('inf'))
         global_max = tf.constant(float('-inf'))
@@ -750,7 +758,8 @@ def wt_range_search(model, model_name, mode='sv', filepath='0', force=0):
 
     # Find path
     if(filepath == '0'):
-        BASE_PATH, _, _, _, _ = path_definition()
+        dict = path_definition()
+        BASE_PATH = dict['BASE_PATH']
         short_name = model_name[:-10]
         tmp_filepath = f"{BASE_PATH}/Docs_Reports/Quant/Ranges/{short_name}_wt_range.json"
     else:
@@ -840,7 +849,8 @@ def activation_range_search(sampled_files, model, model_name, mode='sv', filepat
 
     # Find path
     if(filepath == '0'):
-        BASE_PATH, _, _, _, _ = path_definition()
+        dict = path_definition()
+        BASE_PATH = dict['BASE_PATH']
         short_name = model_name[:-10]
         tmp_filepath = f"{BASE_PATH}/Docs_Reports/Quant/Ranges/{short_name}_activation_sw_range.json"
     else:
@@ -926,7 +936,8 @@ def activation_range_search(sampled_files, model, model_name, mode='sv', filepat
     # Save and/or print ranges
     if mode=='s' or mode=='sv':
         if filepath=='0':
-            BASE_PATH, _, _, _, _ = path_definition()
+            dict = path_definition()
+            BASE_PATH = dict['BASE_PATH']
             short_name = model_name[:-10]
             filepath = f"{BASE_PATH}/Docs_Reports/Quant/Ranges/{short_name}_activation_sw_range.json"        
         # Save json if it doesn't exist or force
@@ -993,7 +1004,8 @@ def wt_scale_search(wt_range_dict, model_name, filepath='0', force=0, mode='sv')
     #        1 -> calculate &  return, if file exists, ask if you want to overwrite
 
     if(filepath == '0'):
-        BASE_PATH, _, _, _, _ = path_definition()
+        dict = path_definition()
+        BASE_PATH = dict['BASE_PATH']
         short_name = model_name[:-10]
         tmp_filepath = f"{BASE_PATH}/Docs_Reports/Quant/Ranges/{short_name}_wt_scale.json"
     else:
@@ -1069,7 +1081,8 @@ def activation_sw_scale_search(activation_sw_range_dict, model_name, filepath='0
     # force: 0 -> if file exists read from path & return, if it doesn't exist calculate & write, return
     #        1 -> calculate &  return, if file exists, ask if you want to overwrite
     if(filepath == '0'):
-        BASE_PATH, _, _, _, _ = path_definition()
+        dict = path_definition()
+        BASE_PATH = dict['BASE_PATH']
         short_name = model_name[:-10]
         tmp_filepath = f"{BASE_PATH}/Docs_Reports/Quant/Ranges/{short_name}_activation_sw_scale.json"
     else:
@@ -1136,7 +1149,8 @@ def activation_hw_search(model_name, activation_sw_range_dict, activation_sw_sca
 
     # Find correct path
     if(filepath == '0'):
-        BASE_PATH, _, _, _, _ = path_definition()
+        dict = path_definition()
+        BASE_PATH = dict['BASE_PATH']
         short_name = model_name[:-10]
         tmp_filepath = f"{BASE_PATH}/Docs_Reports/Quant/Ranges/{short_name}_complete_dict.json"
     else:
@@ -1291,11 +1305,11 @@ def gen_sample_paths(path_dataset='0', num_samples=40):
     import random
 
     if(path_dataset=='0'):
-        BASE_PATH, PATH_DATASET, PATH_RAWDATA, PATH_JOINEDDATA, PATH_SAVEDMODELS = path_definition()
-        directory = PATH_DATASET
+        dict = path_definition()
+        directory = dict['PATH_DATASET']
     else:
         directory = path_dataset
-    class_path = [os.path.join(PATH_DATASET, d) for d in os.listdir(directory) if os.path.isdir(os.path.join(directory, d))]
+    class_path = [os.path.join(directory, d) for d in os.listdir(directory) if os.path.isdir(os.path.join(directory, d))]
 
     img_size = (224, 224, 3)
     num_samples = num_samples
@@ -1333,7 +1347,8 @@ def quant_activations(model, model_name, num_bits=8, input_shape=(224,224,3), mo
 
     # Read appropriate ranges
     if(range_path == '0'):
-        BASE_PATH, _, _, _, _ = path_definition()
+        dict = path_definition()
+        BASE_PATH = dict['BASE_PATH']
         short_name = model_name[:-10]
         filepath = f'{BASE_PATH}/Docs_Reports/Quant/Ranges/{short_name}_activation_{design}_range.json'
     else:
@@ -1382,7 +1397,8 @@ def quant_weights(model, model_name, num_bits=8, range_path='0', quant='symmetri
     
     # Get range from json or search for it
     if(range_path=='0'):
-        BASE_PATH, _, _, _, _ = path_definition()
+        dict = path_definition()
+        BASE_PATH = dict['BASE_PATH']
         short_name = model_name[:-10]
         filepath = f'{BASE_PATH}/Docs_Reports/Quant/Ranges/{short_name}_wt_range.json'
     else:
@@ -1460,7 +1476,8 @@ def quant_weights(model, model_name, num_bits=8, range_path='0', quant='symmetri
 
 def quant_model(model, model_name, num_bits=8, design='hw', batch_len=157, force=0):
     # checks if for bw there is already a value in json, hanldes it as above
-    BASE_PATH, _, _, _, _ = path_definition()
+    dict = path_definition()
+    BASE_PATH = dict['BASE_PATH']
     short_name = model_name[:-10]
     tmp_filepath = f"{BASE_PATH}/Docs_Reports/Quant/Metrics/{short_name}_metrics_quant_{design}.json"
 

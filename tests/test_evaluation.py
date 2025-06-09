@@ -4,9 +4,9 @@ import tensorflow as tf
 from tensorflow.keras.utils import image_dataset_from_directory # type: ignore
 from tensorflow.keras.applications.vgg16 import preprocess_input # type: ignore
 import json
-
-
-_, _, pathRawData, _, pathSavedModels = path_definition()
+dict = path_definition()
+pathRawData = dict['PATH_RAWDATA']
+pathSavedModels = dict['PATH_SAVEDMODELS']
 filepath = f'{pathSavedModels}/CD3/CD3_P1_FT_continue_008_val0.0361.keras'
 model = tf.keras.models.load_model(filepath)
 

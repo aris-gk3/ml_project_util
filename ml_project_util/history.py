@@ -7,10 +7,12 @@ from .path import path_definition
 
 # Path relative to Docs_Reports
 def concatenate_json(relpath1, relpath2, output_filename):
-    pathBase, _, _, PATH_JOINEDDATA, _ = path_definition()
+    dict = path_definition()
+    BASE_PATH = dict['BASE_PATH']
+    PATH_JOINEDDATA = dict['PATH_JOINEDDATA']
     
-    fullpath1 = f'{pathBase}/Docs_Reports/{relpath1}'
-    fullpath2 = f'{pathBase}/Docs_Reports/{relpath2}'
+    fullpath1 = f'{BASE_PATH}/Docs_Reports/{relpath1}'
+    fullpath2 = f'{BASE_PATH}/Docs_Reports/{relpath2}'
     fullpath_out = f'{PATH_JOINEDDATA}/{output_filename}'
     with open(fullpath1) as f1, open(fullpath2) as f2:
         d1, d2 = json.load(f1), json.load(f2)
@@ -25,7 +27,11 @@ def concatenate_json(relpath1, relpath2, output_filename):
 
 # only name as argument
 def plot_json(json_name, img_name, data_type='raw'):
-    BASE_PATH, _, PATH_RAWDATA, PATH_JOINEDDATA, _ = path_definition()
+    dict = path_definition()
+    BASE_PATH = dict['BASE_PATH']
+    PATH_RAWDATA = dict['PATH_RAWDATA']
+    PATH_JOINEDDATA = dict['PATH_JOINEDDATA']
+
     if data_type=='raw':
         filepath = f'{PATH_RAWDATA}/{json_name}.json'
     elif data_type=='joined':
@@ -69,7 +75,8 @@ def plot_json(json_name, img_name, data_type='raw'):
 
 # only name as argument
 def save_json(history, json_name, parent=None):
-    _, _, PATH_RAWDATA, _, _ = path_definition()
+    dict = path_definition()
+    PATH_RAWDATA = dict['PATH_RAWDATA']
     filepath = f"{PATH_RAWDATA}/{json_name}.json"
 
     # with open(filepath, 'w') as f:
@@ -83,7 +90,10 @@ def save_json(history, json_name, parent=None):
 
 # only name as argument
 def save_best_model_history(json_name, number, data_type='raw'):
-    _, _, PATH_RAWDATA, PATH_JOINEDDATA, _ = path_definition()
+    dict = path_definition()
+    PATH_RAWDATA = dict['PATH_RAWDATA']
+    PATH_JOINEDDATA = dict['PATH_JOINEDDATA']
+
     if data_type=='raw':
         filepath = f'{PATH_RAWDATA}/{json_name}.json'
     elif data_type=='joined':

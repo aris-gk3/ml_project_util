@@ -6,7 +6,9 @@ from tensorflow.keras.applications.vgg16 import preprocess_input # type: ignore
 ### Functions for evaluating the model on the training dataset
 
 def model_evaluation(model):
-    _, PATH_DATASET, _, _, _ = path_definition()
+    dict = path_definition()
+    PATH_DATASET = dict['PATH_DATASET']
+
     val_dataset = image_dataset_from_directory(
         PATH_DATASET,
         image_size=(224, 224),
@@ -29,9 +31,11 @@ def model_evaluation(model):
     print(f'Validation accuracy is: {accuracy}')
 
 def model_evaluation_precise(model, batch_len=157):
-    _, pathDataset, _, _, _ = path_definition()
+    dict = path_definition()
+    PATH_DATASET = dict['PATH_DATASET']
+
     val_dataset = image_dataset_from_directory(
-        pathDataset,
+        PATH_DATASET,
         image_size=(224, 224),
         batch_size=32,
         label_mode='binary',

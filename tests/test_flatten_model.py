@@ -20,7 +20,13 @@ model.add(layers.BatchNormalization())
 model.add(layers.Dropout(0.5))
 model.add(layers.Dense(1, activation='sigmoid'))
 
-pathBase, pathDataset, pathRawData, pathJoinedData, pathSavedModels = path_definition()
+dict = path_definition()
+pathBase = dict['BASE_PATH']
+pathDataset = dict['PATH_DATASET']
+pathTest = dict['PATH_TEST']
+pathRawData = dict['PATH_RAWDATA']
+pathJoinedData = dict['PATH_JOINEDDATA']
+pathSavedModels = dict['PATH_SAVEDMODELS']
 
 filepath = f'{pathSavedModels}/CD3/CD3_P1_FT_continue_008_val0.0361.keras'
 model_old = tf.keras.models.load_model(filepath)

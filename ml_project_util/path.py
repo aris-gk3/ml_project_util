@@ -32,8 +32,18 @@ def path_definition(platformarg='0'):
         # load from .env
         BASE_PATH = os.getenv("BASE_PATH")
         PATH_DATASET = os.getenv("PATH_DATASET")
+        PATH_TEST = os.getenv("PATH_TEST")
         PATH_RAWDATA = os.getenv("PATH_RAWDATA")
         PATH_JOINEDDATA = os.getenv("PATH_JOINEDDATA")
         PATH_SAVEDMODELS = os.getenv("PATH_SAVEDMODELS")
 
-    return BASE_PATH, PATH_DATASET, PATH_RAWDATA, PATH_JOINEDDATA, PATH_SAVEDMODELS
+    dict = {
+        "BASE_PATH": BASE_PATH,
+        "PATH_DATASET": PATH_DATASET,
+        "PATH_TEST": PATH_TEST,
+        "PATH_RAWDATA": PATH_RAWDATA,
+        "PATH_JOINEDDATA": PATH_JOINEDDATA,
+        "PATH_SAVEDMODELS": PATH_SAVEDMODELS
+    }
+
+    return dict

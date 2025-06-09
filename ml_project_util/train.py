@@ -18,7 +18,8 @@ def train(model, epochs, lr, optimizer, name, parent_name=None):
     elif optimizer == 'SGD':
         optimizer = SGD(learning_rate=lr)
 
-    _, _, PATH_RAWDATA, _, PATH_SAVEDMODELS = path_definition()
+    dict = path_definition()
+    PATH_SAVEDMODELS = dict['PATH_SAVEDMODELS']
     model.compile(optimizer=optimizer, loss='binary_crossentropy', metrics=['accuracy'])
     checkpoint_path = f"{PATH_SAVEDMODELS}/{name[:3]}/{name}_{{epoch:03d}}_val{{val_loss:.4f}}.keras"
 
