@@ -1588,7 +1588,8 @@ class SymmetricFakeQuantLayer_custom(tf.keras.layers.Layer):
 
         x_clipped = tf.clip_by_value(inputs, -self.max_abs_val, self.max_abs_val)
         x_scaled = x_clipped / scale
-        x_rounded = tf.round(x_scaled)
+        #x_rounded = tf.round(x_scaled)
+        x_rounded = tf.floor(x_scaled)
         x_q = tf.clip_by_value(x_rounded, qmin, qmax)
         x_dequantized = x_q * scale
 
