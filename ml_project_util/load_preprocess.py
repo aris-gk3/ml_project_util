@@ -11,7 +11,8 @@ from .path import path_definition
 ### Implements all step of training and preprocessing
 
 def load_preprocess():    
-    _, pathDataset, _, _, _ = path_definition()
+    _dict = path_definition()
+    PATH_DATASET = dict['PATH_DATASET']
 
     subfolders = [f.name for f in os.scandir(pathDataset) if f.is_dir()]
     if(len(subfolders)==2):
@@ -20,7 +21,7 @@ def load_preprocess():
         label_mode_str = 'categorical'
 
     train_dataset = image_dataset_from_directory(
-        pathDataset,
+        PATH_DATASET,
         image_size=(224, 224),
         batch_size=32,
         label_mode=label_mode_str,
@@ -30,7 +31,7 @@ def load_preprocess():
     )
 
     val_dataset = image_dataset_from_directory(
-        pathDataset,
+        PATH_DATASET,
         image_size=(224, 224),
         batch_size=32,
         label_mode=label_mode_str,
