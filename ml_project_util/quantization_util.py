@@ -1413,9 +1413,33 @@ def quant_weights(model, model_name, num_bits=8, range_path='0', quant='symmetri
         weight_ranges = wt_range_search(model, model_name)
 
     # Get activation range from json
-    activation_range_filepath = f'{BASE_PATH}/Docs_Reports/Quant/Ranges/{short_name}_activation_{design}_range.json'
-    with open(activation_range_filepath, 'r') as f:
-        activation_ranges = json.load(f)
+    if design == 'hw':
+        
+        activation_sw_range_dict = f"{BASE_PATH}/Docs_Reports/Quant/Ranges/{short_name}_activation_sw_range.json"
+        if not (os.path.isfile(activation_sw_range_dict)):
+            sampled_files = gen_sample_paths()
+            activation_ranges = activation_range_search(sampled_files, model, model_name, mode='s', filepath='0', force=0)
+        
+        activation_sw_scale_dict = f"{BASE_PATH}/Docs_Reports/Quant/Ranges/{short_name}_activation_sw_scale.json"
+        if not (os.path.isfile(activation_sw_scale_dict)):
+            activation_sw_scale_search(activation_sw_range_dict, model_name, filepath='0', force=0, mode='s')
+        
+        wt_range_dict = f"{BASE_PATH}/Docs_Reports/Quant/Ranges/{short_name}_wt_range.json"
+        if not (os.path.isfile(wt_range_dict)):
+            wt_range_search(model, model_name, mode='s', filepath='0', force=0)
+
+        wt_scale_dict = f"{BASE_PATH}/Docs_Reports/Quant/Ranges/{short_name}_wt_scale.json"
+        if not (os.path.isfile()):
+            wt_scale_search(wt_range_dict, model_name, filepath='0', force=0, mode='s')
+        complete_dict = activation_hw_search(model_name, activation_sw_range_dict, activation_sw_scale_dict, wt_range_dict, wt_scale_dict, mode='s')
+        activation_ranges = complete_dict['activation_hw_range_dict']
+    elif design == 'sw':
+        sampled_files = gen_sample_paths()
+        activation_ranges = activation_range_search(sampled_files, model, model_name, mode='s', filepath='0', force=0)
+
+    # activation_range_filepath = f'{BASE_PATH}/Docs_Reports/Quant/Ranges/{short_name}_activation_{design}_range.json'
+    # with open(activation_range_filepath, 'r') as f:
+    #     activation_ranges = json.load(f)
 
     # Clone weights to new model
     for layer in model.layers:
