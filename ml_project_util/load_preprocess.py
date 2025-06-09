@@ -11,10 +11,10 @@ from .path import path_definition
 ### Implements all step of training and preprocessing
 
 def load_preprocess():    
-    _dict = path_definition()
+    dict = path_definition()
     PATH_DATASET = dict['PATH_DATASET']
 
-    subfolders = [f.name for f in os.scandir(pathDataset) if f.is_dir()]
+    subfolders = [f.name for f in os.scandir(PATH_DATASET) if f.is_dir()]
     if(len(subfolders)==2):
         label_mode_str = 'binary'
     else:
