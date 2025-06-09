@@ -23,8 +23,8 @@ def train(model, epochs, lr, optimizer, name, parent_name=None):
     # if(binary===1):
     #     model.compile(optimizer=optimizer, loss='binary_crossentropy', metrics=['accuracy'])
     # else:
-    #     model.compile(optimizer=optimizer, loss='binary_crossentropy', metrics=['accuracy'])
-    model.compile(optimizer=optimizer, loss='binary_crossentropy', metrics=['accuracy'])
+    #     model.compile(optimizer=optimizer, loss='categorical_crossentropy ', metrics=['accuracy'])
+    model.compile(optimizer=optimizer, loss='categorical_crossentropy ', metrics=['accuracy'])
     checkpoint_path = f"{PATH_SAVEDMODELS}/{name[:3]}/{name}_{{epoch:03d}}_val{{val_loss:.4f}}.keras"
 
     checkpoint_callback = ModelCheckpoint(

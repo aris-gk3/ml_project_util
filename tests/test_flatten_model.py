@@ -3,8 +3,8 @@ from ml_project_util.model_evaluation import model_evaluation_precise
 from ml_project_util.flatten_model import copy_all_weights
 import tensorflow as tf
 import json
-from tensorflow.keras.applications import VGG16 # type: error
-from tensorflow.keras import models, layers # type: error
+from tensorflow.keras.applications import VGG16  # type: ignore
+from tensorflow.keras import models, layers # type: ignore
 
 # Load the VGG16 base model without the top (classifier), include weights
 vgg_base = VGG16(weights='imagenet', include_top=False, input_shape=(224, 224, 3))
