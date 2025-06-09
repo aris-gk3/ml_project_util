@@ -27,7 +27,7 @@ def subsample_imgdir(num_samples=100):
     dict = path_definition()
     PATH_DATASET = dict['PATH_DATASET']
 
-    classes = [f for f in os.listdir(PATH_DATASET) if os.path.isdir(os.path.join(PATH_DATASET, f))]
+    classes = [os.path.join(PATH_DATASET, f) for f in os.listdir(PATH_DATASET) if os.path.isdir(os.path.join(PATH_DATASET, f))]
 
     valid_extensions = ('.png', '.jpg', '.jpeg')
 
