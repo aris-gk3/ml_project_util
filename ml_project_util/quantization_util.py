@@ -1414,19 +1414,24 @@ def quant_weights(model, model_name, num_bits=8, range_path='0', quant='symmetri
     # Get activation range from json
     if design == 'hw':
         
+        # activation_sw_range_dict_path = f"{BASE_PATH}/Docs_Reports/Quant/Ranges/{short_name}_activation_sw_range.json"
+        # if not (os.path.isfile(activation_sw_range_dict_path)):
+
+        sampled_files = gen_sample_paths()
         activation_sw_range_dict = activation_range_search(sampled_files, model, model_name, mode='s', filepath='0', force=0)
         
-        activation_sw_scale_dict_path = f"{BASE_PATH}/Docs_Reports/Quant/Ranges/{short_name}_activation_sw_scale.json"
-        if not (os.path.isfile(activation_sw_scale_dict_path)):
-            activation_sw_scale_dict = activation_sw_scale_search(activation_sw_range_dict, model_name, filepath='0', force=0, mode='s')
+        # activation_sw_scale_dict_path = f"{BASE_PATH}/Docs_Reports/Quant/Ranges/{short_name}_activation_sw_scale.json"
+        # if not (os.path.isfile(activation_sw_scale_dict_path)):
+        activation_sw_scale_dict = activation_sw_scale_search(activation_sw_range_dict, model_name, filepath='0', force=0, mode='s')
         
-        wt_range_dict_path = f"{BASE_PATH}/Docs_Reports/Quant/Ranges/{short_name}_wt_range.json"
-        if not (os.path.isfile(wt_range_dict_path)):
-            wt_range_dict = wt_range_search(model, model_name, mode='s', filepath='0', force=0)
+        # wt_range_dict_path = f"{BASE_PATH}/Docs_Reports/Quant/Ranges/{short_name}_wt_range.json"
+        # if not (os.path.isfile(wt_range_dict_path)):
+        wt_range_dict = wt_range_search(model, model_name, mode='s', filepath='0', force=0)
 
-        wt_scale_dict_path = f"{BASE_PATH}/Docs_Reports/Quant/Ranges/{short_name}_wt_scale.json"
-        if not (os.path.isfile()):
-            wt_scale_dict = wt_scale_search(wt_range_dict, model_name, filepath='0', force=0, mode='s')
+        # wt_scale_dict_path = f"{BASE_PATH}/Docs_Reports/Quant/Ranges/{short_name}_wt_scale.json"
+        # if not (os.path.isfile()):
+        wt_scale_dict = wt_scale_search(wt_range_dict, model_name, filepath='0', force=0, mode='s')
+        
         complete_dict = activation_hw_search(model_name, activation_sw_range_dict, activation_sw_scale_dict, wt_range_dict, wt_scale_dict, mode='s')
         activation_ranges = complete_dict['activation_hw_range_dict']
     elif design == 'sw':
