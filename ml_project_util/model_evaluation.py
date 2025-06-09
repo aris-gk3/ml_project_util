@@ -40,6 +40,7 @@ def model_evaluation_precise(model, batch_len=157):
         label_mode_str = 'binary'
     else:
         label_mode_str = 'categorical'
+    label_mode_str = 'categorical'
 
     val_dataset = image_dataset_from_directory(
         PATH_DATASET,
@@ -75,10 +76,28 @@ def model_evaluation_precise(model, batch_len=157):
             acc_metric.update_state(labels, preds)
 
             loss = loss_fn(labels, preds)
-            loss_metric.update_state(loss)
+            # loss_metric.update_state(loss)
+            batch_size = tf.shape(labels)[0]
+            loss_metric.update_state(loss * tf.cast(batch_size, loss.dtype))
 
     final_acc = acc_metric.result().numpy()
-    final_loss = loss_metric.result().numpy()
+    # final_loss = loss_metric.result().numpy()
+    final_loss = loss_metric.result().numpy() / (batch_len * 32)  # total samples = batches * batch_size
+
+
+    # total_loss = 0.0
+    # total_samples = 0
+
+    # for batch_no, (images, labels) in enumerate(val_dataset):
+    #     if batch_no >= batch_len:
+    #         break
+    #     preds = model(images, training=False)
+    #     loss = loss_fn(labels, preds).numpy()
+    #     batch_size = labels.shape[0]
+    #     total_loss += loss * batch_size
+    #     total_samples += batch_size
+
+    # final_loss = total_loss / total_samples
 
     print(f"Precise val accuracy: {final_acc:.5f}")
     print(f"Precise val loss: {final_loss:.5f}")
