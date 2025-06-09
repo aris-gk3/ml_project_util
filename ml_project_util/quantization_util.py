@@ -772,9 +772,10 @@ def wt_range_search(model, model_name, mode='sv', filepath='0', force=0):
                 with open(tmp_filepath, 'r') as f:
                     layer_ranges = json.load(f)
                 print(f'Read weight range json from {tmp_filepath}')
+                calculate = 0
             except:
                 print('Wrong format for reading range from json!!')
-            calculate = 0
+                calculate = 1
             # revoke save mode
             if(mode == 's'):
                 mode = ''
