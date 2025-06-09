@@ -66,6 +66,8 @@ def model_evaluation_precise(model, batch_len=157):
 ##############
 
     batch_no = 0
+    total_loss = 0.0
+    total_samples = 0
     for batch in val_dataset:
         if batch_no < batch_len:
             print(f'Batch Number: {batch_no}')
@@ -75,14 +77,21 @@ def model_evaluation_precise(model, batch_len=157):
             preds = model(images, training=False)
             acc_metric.update_state(labels, preds)
 
-            loss = loss_fn(labels, preds)
-            # loss_metric.update_state(loss)
-            batch_size = tf.shape(labels)[0]
-            loss_metric.update_state(loss * tf.cast(batch_size, loss.dtype))
+            # loss = loss_fn(labels, preds)
+            # # loss_metric.update_state(loss)
+            # batch_size = tf.shape(labels)[0]
+            # loss_metric.update_state(loss * tf.cast(batch_size, loss.dtype))
+
+            # Compute batch loss and accumulate sample-wise
+            batch_loss = loss_fn(labels, preds).numpy()
+            batch_size = labels.shape[0]
+            total_loss += batch_loss * batch_size
+            total_samples += batch_size
 
     final_acc = acc_metric.result().numpy()
     # final_loss = loss_metric.result().numpy()
-    final_loss = loss_metric.result().numpy() / (batch_len * 32)  # total samples = batches * batch_size
+    # final_loss = loss_metric.result().numpy() / (batch_len * 32)  # total samples = batches * batch_size
+    final_loss = total_loss / total_samples  # average per sample
 
 
     # total_loss = 0.0
