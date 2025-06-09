@@ -8,15 +8,15 @@ from .path import path_definition
 
 ### Implements all step of training and preprocessing
 
-def load_preprocess():
+def load_preprocess():    
+    _, pathDataset, _, _, _ = path_definition()
 
     subfolders = [f.name for f in os.scandir(pathDataset) if f.is_dir()]
     if(len(subfolders)==2):
         label_mode_str = 'binary'
     else:
         label_mode_str = 'categorical'
-    
-    _, pathDataset, _, _, _ = path_definition()
+
     train_dataset = image_dataset_from_directory(
         pathDataset,
         image_size=(224, 224),
