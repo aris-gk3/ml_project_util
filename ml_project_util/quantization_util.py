@@ -773,7 +773,7 @@ def wt_range_search(model, model_name, mode='sv', filepath='0', force=0):
                 print(f'Read weight range json from {tmp_filepath}')
                 calculate = 0
             except:
-                print('Wrong format for reading range from json!!')
+                print('Wrong format for reading wt range from json!!')
                 calculate = 1
             # revoke save mode
             if(mode == 's'):
@@ -864,7 +864,7 @@ def activation_range_search(sampled_files, model, model_name, mode='sv', filepat
                     range_serializable = json.load(f)
                 print(f'Read activation range json from {tmp_filepath}')
             except:
-                print('Wrong format for reading range from json!!')
+                print('Wrong format for reading activation sw range from json!!')
             calculate = 0
             # revoke save mode
             if(mode == 's'):
@@ -1019,7 +1019,7 @@ def wt_scale_search(wt_range_dict, model_name, filepath='0', force=0, mode='sv')
                     wt_scale_dict = json.load(f)
                 print(f'Read weight scale json from {tmp_filepath}')
             except:
-                print('Wrong format for reading range from json!!')
+                print('Wrong format for reading wt scale from json!!')
             calculate = 0
             # revoke save mode
             if(mode == 's'):
@@ -1096,7 +1096,7 @@ def activation_sw_scale_search(activation_sw_range_dict, model_name, filepath='0
                     activation_sw_scale_dict = json.load(f)
                 print(f'Read activation sw scale json from {tmp_filepath}')
             except:
-                print('Wrong format for reading range from json!!')
+                print('Wrong format for reading activation sw scale from json!!')
             calculate = 0
             # revoke save mode
             if(mode == 's'):
@@ -1165,7 +1165,7 @@ def activation_hw_search(model_name, activation_sw_range_dict, activation_sw_sca
                     complete_dict = json.load(f)
                 print(f'Read complete json dictionary from {tmp_filepath}')
             except:
-                print('Wrong format for reading json!!')
+                print('Wrong format for reading complete dictionarys json!!')
             calculate = 0
             # revoke save mode
             if(mode == 's'):
@@ -1357,7 +1357,7 @@ def quant_activations(model, model_name, num_bits=8, input_shape=(224,224,3), mo
     try:
         with open(filepath, 'r') as f:
             range_dict = json.load(f)
-        print(f'{design} activation quantization range has been read from {filepath}.')
+        print(f'Read {design} activation quantization range from {filepath}.')
     except:
         print(f'Quantization range not found in {filepath}, recalculating.')
         # calculate and save json with ranges
@@ -1378,7 +1378,11 @@ def quant_activations(model, model_name, num_bits=8, input_shape=(224,224,3), mo
 
     # quant model and evaluate
     quant_activation_model = clone_model_with_fake_quant(model, input_shape, range_dict, num_bits=num_bits)
-    quant_activation_model.compile(optimizer='adam', loss='sparse_categorical_crossentropy', metrics=['accuracy'])
+    # if(binary==1):
+    #     quant_activation_model.compile(optimizer='adam', loss='sparse_categorical_crossentropy', metrics=['accuracy'])    # else:
+    #     quant_activation_model.compile(optimizer='adam', loss='binary_crossentropy', metrics=['accuracy'])
+    quant_activation_model.compile(optimizer='adam', loss='binary_crossentropy', metrics=['accuracy'])
+
     if (mode=='eval'):
         acc, loss = model_evaluation_precise(quant_activation_model, batch_len=batch_len)
     else:
@@ -1406,7 +1410,7 @@ def quant_weights(model, model_name, num_bits=8, range_path='0', quant='symmetri
     try:
         with open(filepath, 'r') as f:
             weight_ranges = json.load(f)
-        print(f'Weight quantization range has been read from {filepath}.')
+        print(f'Read weight quantization range from {filepath}.')
     except:
         print(f'Weight quantization not found in {filepath}, searching now...')
         weight_ranges = wt_range_search(model, model_name)
@@ -1442,17 +1446,6 @@ def quant_weights(model, model_name, num_bits=8, range_path='0', quant='symmetri
     # with open(activation_range_filepath, 'r') as f:
     #     activation_ranges = json.load(f)
 
-    # Clone weights to new model
-    for layer in model.layers:
-        if hasattr(layer, "get_weights") and hasattr(layer, "set_weights"):
-            weights = layer.get_weights()
-            if weights and layer.name in weight_ranges:
-                layer_ranges = weight_ranges[layer.name]['weight']
-                new_weights = [
-                    quantize_tensor_symmetric(w, layer_ranges, num_bits=num_bits)
-                    for w in weights
-                ]
-                layer.set_weights(new_weights)
 
     # # This would quantize biases based on their range
     # for layer in model.layers:
@@ -1513,7 +1506,7 @@ def quant_model(model, model_name, num_bits=8, design='hw', batch_len=157, force
         with open(tmp_filepath, 'r') as f:
             metric_dict = json.load(f)
         if(isinstance(metric_dict[f'{num_bits}b']['accuracy'], float)):
-            print(f'Read input range json from {tmp_filepath}')
+            print(f'Read metrics from {tmp_filepath}')
             if(force==1):
                 calculate = 1
                 ask_message = 1
