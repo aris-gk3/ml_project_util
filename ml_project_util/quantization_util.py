@@ -27,8 +27,7 @@ def subsample_imgdir(num_samples=100):
     dict = path_definition()
     PATH_DATASET = dict['PATH_DATASET']
 
-    img_dir1 = f'{PATH_DATASET}/DogConverted'
-    img_dir2 = f'{PATH_DATASET}/CatConverted'
+    classes = [f for f in os.listdir(PATH_DATASET) if os.path.isdir(os.path.join(PATH_DATASET, f))]
 
     valid_extensions = ('.png', '.jpg', '.jpeg')
 
@@ -36,7 +35,7 @@ def subsample_imgdir(num_samples=100):
     all_files = []
 
     # Loop through both directories
-    for img_dir in [img_dir1, img_dir2]:
+    for img_dir in classes:
         for f in os.listdir(img_dir):
             full_path = os.path.join(img_dir, f)
             if os.path.isfile(full_path) and f.lower().endswith(valid_extensions):
