@@ -1,7 +1,8 @@
-from .path import path_definition
+import os
 import tensorflow as tf
 from tensorflow.keras.utils import image_dataset_from_directory # type: ignore
 from tensorflow.keras.applications.vgg16 import preprocess_input # type: ignore
+from .path import path_definition
 
 ### Functions for evaluating the model on the training dataset
 
@@ -34,11 +35,17 @@ def model_evaluation_precise(model, batch_len=157):
     dict = path_definition()
     PATH_DATASET = dict['PATH_DATASET']
 
+    subfolders = [f.name for f in os.scandir(PATH_DATASET) if f.is_dir()]
+    if(len(subfolders)==2):
+        label_mode_str = 'binary'
+    else:
+        label_mode_str = 'categorical'
+
     val_dataset = image_dataset_from_directory(
         PATH_DATASET,
         image_size=(224, 224),
         batch_size=32,
-        label_mode='binary',
+        label_mode=label_mode_str,
         validation_split=0.2,  # 20% for validation
         subset='validation',   # Use the 'validation' subset
         seed=123
