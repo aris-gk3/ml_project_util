@@ -57,9 +57,12 @@ def model_evaluation_precise(model, batch_len=157):
 
     val_dataset = val_dataset.map(preprocess_img)
 
-    acc_metric = tf.keras.metrics.BinaryAccuracy()
+################
+    acc_metric = tf.keras.metrics.CategoricalAccuracy()
+    # acc_metric = tf.keras.metrics.BinaryAccuracy()
     loss_metric = tf.keras.metrics.Mean()  # To average the loss over batches
     loss_fn = tf.keras.losses.CategoricalCrossentropy(from_logits=False)
+##############
 
     batch_no = 0
     for batch in val_dataset:
