@@ -19,6 +19,43 @@ For local execution: .env file with BASE_PATH, PATH_DATASET, PATH_RAWDATA, PATH_
 
 To install on cloud notebooks ```!pip install git+https://github.com/aris-gk3/ml_project_util.git ```
 
+## Folder Structure
+
+📁 project-root/
+├── 📁 Dataset/
+│   ├── 📁 Train_val/
+│   └── 📁 Test/
+├── 📁 Docs_Reports/
+│   ├── 📁 AnalysisPlots/
+│   ├── 📁 JoinedTrainingData/
+│   ├── 📁 Quant/
+│   ├── 📁 RawTrainingData/
+│   └── 📁 TrainingPlots/
+├── 📁 Notebooks/
+│   ├── 📁 DataHandling/
+│   ├── 📁 Quantization/
+│   ├── 📁 Training/
+│   └── 📁 Visualization/
+├── 📁 SavedModels/
+│   ├── model1.keras
+│   └── ...
+├── .env
+├── .gitignore
+├── README.md
+└── requirements.txt
+
+<pre>
+📁 project-root/
+ ├── 📁 data/ 
+ │ ├── train/ 
+ │ └── test/ 
+ ├── 📁 models/ 
+ ├── 📁 scripts/ 
+ │    ├── preprocess.py 
+ │    └── train.py 
+ └── README.md
+</pre>
+
 ## Testing
 
 Manual execution of test*.py files & check of results.

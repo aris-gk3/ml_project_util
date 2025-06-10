@@ -195,7 +195,7 @@ def move_random_files(source_folder, destination_folder, percent=15, test_files_
 
         if (len(files_to_move) == num_to_move and len(files_to_move)!=0):
             new_list = 0
-            print('Test split will be done from txt file!')
+            print('\nTest split will be done from txt file!')
         else:
             if (len(files_to_move) == 0):
                 print('Txt file with list is empty!')
