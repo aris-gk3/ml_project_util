@@ -101,7 +101,7 @@ def undo_test_split(verbose=1):
 
 ### Helper functions
 
-def move_random_files(source_folder, destination_folder, percent=15):
+def move_random_files_old(source_folder, destination_folder, percent=15):
     # Ensure the destination folder exists
     os.makedirs(destination_folder, exist_ok=True)
     
@@ -121,6 +121,49 @@ def move_random_files(source_folder, destination_folder, percent=15):
         dst_path = os.path.join(destination_folder, filename)
         shutil.move(src_path, dst_path)
         print(f"Moved: {filename}")
+
+    print(f"\nMoved {num_to_move} file(s) from '{source_folder}' to '{destination_folder}'.")
+
+
+def move_random_files(source_folder, destination_folder, percent=15, test_files_path=''):
+    # test_split_txt: the path that the txt containing the names of the test split
+    # if it doesn't exist a new random sample is taken and saved.
+
+    # Create the destination folder for the test split if it doesn't exist
+    os.makedirs(destination_folder, exist_ok=True)
+    
+    # List all files in the source folder (excluding subdirectories)
+    all_files = [f for f in os.listdir(source_folder)
+                 if os.path.isfile(os.path.join(source_folder, f))]
+
+    # Calculate number of files to move
+    num_to_move = int(len(all_files) * percent / 100)
+
+    # Get path
+    if (test_files_path == ''):
+        dict = path_definition()
+        BASE_PATH = dict['BASE_PATH']
+        test_files_path = f'{BASE_PATH}/test_files.txt'
+
+    # If txt file exists
+    if (os.path.exists(test_files_path)):  # exist_ok=True avoids error if it already exists):
+        with open(test_files_path, "r") as f:
+            files_to_move = [line.strip() for line in f if line.strip()]
+    else:
+        os.makedirs(test_files_path, exist_ok=True)
+        # Generate random list of files to be moved
+        files_to_move = random.sample(all_files, num_to_move)
+        # Save list to .txt file
+        with open(test_files_path, "w") as f:
+            for d in files_to_move:
+                f.write(d + "\n")
+        
+    # Move files
+    for filename in files_to_move:
+            src_path = os.path.join(source_folder, filename)
+            dst_path = os.path.join(destination_folder, filename)
+            shutil.move(src_path, dst_path)
+            print(f"Moved: {filename}")
 
     print(f"\nMoved {num_to_move} file(s) from '{source_folder}' to '{destination_folder}'.")
 
