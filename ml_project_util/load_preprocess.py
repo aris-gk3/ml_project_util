@@ -193,7 +193,7 @@ def move_random_files(source_folder, destination_folder, percent=15, test_files_
         with open(test_files_path, "r") as f:
             files_to_move = [line.strip() for line in f if line.strip()]
 
-        if (len(files_to_move) == num_to_move):
+        if (len(files_to_move) == num_to_move and len(files_to_move)!=0):
             new_list = 0
         else:
             if (len(files_to_move) == 0):
