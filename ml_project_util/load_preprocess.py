@@ -185,7 +185,7 @@ def move_random_files(source_folder, destination_folder, percent=15, test_files_
     if (test_files_path == ''):
         dict = path_definition()
         BASE_PATH = dict['BASE_PATH']
-        test_files_path = f'{BASE_PATH}/Dataset/test_files.txt'
+        test_files_path = f'{BASE_PATH}/Dataset/test_files_{os.path.basename(source_folder)}.txt'
 
     # If txt file exists
     new_list = 1
