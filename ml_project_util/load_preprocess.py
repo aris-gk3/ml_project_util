@@ -188,12 +188,13 @@ def move_random_files(source_folder, destination_folder, percent=15, test_files_
         test_files_path = f'{BASE_PATH}/Dataset/test_files.txt'
 
     # If txt file exists
+    new_list = 1
     if (os.path.exists(test_files_path)):  # exist_ok=True avoids error if it already exists):
         with open(test_files_path, "r") as f:
             files_to_move = [line.strip() for line in f if line.strip()]
 
         if (len(files_to_move) == num_to_move):
-            pass
+            new_list = 0
         else:
             if (len(files_to_move) == 0):
                 print('Txt file with list is empty!')
