@@ -35,12 +35,12 @@ def model_evaluation_precise(model, batch_len=157):
     dict = path_definition()
     PATH_DATASET = dict['PATH_DATASET']
 
-    subfolders = [f.name for f in os.scandir(PATH_DATASET) if f.is_dir()]
-    if(len(subfolders)==2):
+    if (model.loss == 'categorical_crossentropy'):
+        label_mode_str = 'categorical'
+    elif (model.loss == 'binary_crossentropy'):
         label_mode_str = 'binary'
     else:
-        label_mode_str = 'categorical'
-    label_mode_str = 'categorical'
+        raise ValueError("Loss function of model is not recognized!")
 
     val_dataset = image_dataset_from_directory(
         PATH_DATASET,
@@ -59,10 +59,15 @@ def model_evaluation_precise(model, batch_len=157):
     val_dataset = val_dataset.map(preprocess_img)
 
 ################
-    acc_metric = tf.keras.metrics.CategoricalAccuracy()
-    # acc_metric = tf.keras.metrics.BinaryAccuracy()
-    loss_metric = tf.keras.metrics.Mean()  # To average the loss over batches
-    loss_fn = tf.keras.losses.CategoricalCrossentropy(from_logits=False)
+    # loss_metric = tf.keras.metrics.Mean()  # To average the loss over batches
+    if (model.loss == 'categorical_crossentropy'):
+        loss_fn = tf.keras.losses.CategoricalCrossentropy(from_logits=False)
+        acc_metric = tf.keras.metrics.CategoricalAccuracy()
+    elif (model.loss == 'binary_crossentropy'):
+        loss_fn = tf.keras.losses.BinaryCrossentropy(from_logits=False)
+        acc_metric = tf.keras.metrics.BinaryAccuracy()
+    else:
+        raise ValueError("Loss function of model is not recognized!")
 ##############
 
     batch_no = 0
@@ -77,11 +82,6 @@ def model_evaluation_precise(model, batch_len=157):
             preds = model(images, training=False)
             acc_metric.update_state(labels, preds)
 
-            # loss = loss_fn(labels, preds)
-            # # loss_metric.update_state(loss)
-            # batch_size = tf.shape(labels)[0]
-            # loss_metric.update_state(loss * tf.cast(batch_size, loss.dtype))
-
             # Compute batch loss and accumulate sample-wise
             batch_loss = loss_fn(labels, preds).numpy()
             batch_size = labels.shape[0]
@@ -92,21 +92,6 @@ def model_evaluation_precise(model, batch_len=157):
     # final_loss = loss_metric.result().numpy()
     # final_loss = loss_metric.result().numpy() / (batch_len * 32)  # total samples = batches * batch_size
     final_loss = total_loss / total_samples  # average per sample
-
-
-    # total_loss = 0.0
-    # total_samples = 0
-
-    # for batch_no, (images, labels) in enumerate(val_dataset):
-    #     if batch_no >= batch_len:
-    #         break
-    #     preds = model(images, training=False)
-    #     loss = loss_fn(labels, preds).numpy()
-    #     batch_size = labels.shape[0]
-    #     total_loss += loss * batch_size
-    #     total_samples += batch_size
-
-    # final_loss = total_loss / total_samples
 
     print(f"Precise val accuracy: {final_acc:.5f}")
     print(f"Precise val loss: {final_loss:.5f}")

@@ -15,10 +15,12 @@ def load_preprocess():
     PATH_DATASET = dict['PATH_DATASET']
 
     subfolders = [f.name for f in os.scandir(PATH_DATASET) if f.is_dir()]
-    if(len(subfolders)==2):
+    if (len(subfolders)==2):
         label_mode_str = 'binary'
-    else:
+    elif (len(subfolders)>2):
         label_mode_str = 'categorical'
+    else:
+        raise ValueError("Wrong Nnumber of subfolder for each class!")
 
     train_dataset = image_dataset_from_directory(
         PATH_DATASET,

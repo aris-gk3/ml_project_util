@@ -8,7 +8,7 @@ from ml_project_util.history import save_json
 
 ### Function for quick training
 
-def train(model, epochs, lr, optimizer, name, parent_name=None):
+def train(model, epochs, lr, optimizer, name, parent_name=None, is_binary=None, save_best=False, save_models=True):
     train_dataset, val_dataset = load_preprocess()
 
     if optimizer == 'Adam':
@@ -20,21 +20,31 @@ def train(model, epochs, lr, optimizer, name, parent_name=None):
 
     dict = path_definition()
     PATH_SAVEDMODELS = dict['PATH_SAVEDMODELS']
-    # if(binary===1):
-    #     model.compile(optimizer=optimizer, loss='binary_crossentropy', metrics=['accuracy'])
-    # else:
-    #     model.compile(optimizer=optimizer, loss='categorical_crossentropy ', metrics=['accuracy'])
-    model.compile(optimizer=optimizer, loss='categorical_crossentropy', metrics=['accuracy'])
+
+    if (is_binary == 1):
+        model.compile(optimizer=optimizer, loss='binary_crossentropy', metrics=['accuracy'])
+    elif (is_binary == 0):
+        model.compile(optimizer=optimizer, loss='categorical_crossentropy ', metrics=['accuracy'])
+    else:
+        raise ValueError("Wrong flag for number of classes")
+
     checkpoint_path = f"{PATH_SAVEDMODELS}/{name[:3]}/{name}_{{epoch:03d}}_val{{val_loss:.4f}}.keras"
 
-    checkpoint_callback = ModelCheckpoint(
-        filepath=checkpoint_path,
-        save_freq='epoch',              # Save every epoch
-        save_weights_only=False,
-        save_best_only=False,           # Save every time, not just best
-        monitor='val_loss',
-        verbose=1
-    )
+    if (save_models):
+        checkpoint_callback = ModelCheckpoint(
+            filepath=checkpoint_path,
+            save_freq='epoch',              # Save every epoch
+            save_weights_only=False,
+            save_best_only=save_best,           # Save every time, not just best
+            monitor='val_loss',
+            verbose=1
+        )
+        if (save_best):
+            print('Will save only best models every epoch!')
+        else:
+            print('Will save all models every epoch!')
+    else:
+        checkpoint_callback = None
 
     history = model.fit(
         train_dataset,
@@ -44,9 +54,6 @@ def train(model, epochs, lr, optimizer, name, parent_name=None):
     )
 
     save_json(history, name, parent_name)
-    # filepath = f"{PATH_RAWDATA}/{name}.json"
-    # with open(filepath, 'w') as f:
-    #     json.dump(history.history, f)
 
 def freeze_layers(model, verbose=0):
     for layer in model.layers[:]:
