@@ -225,7 +225,6 @@ def move_random_files(source_folder, destination_folder, percent=15, test_files_
             src_path = os.path.join(source_folder, filename)
             dst_path = os.path.join(destination_folder, filename)
             shutil.move(src_path, dst_path)
-            print(f"Moved: {filename}")
 
     print(f"\nMoved {num_to_move} file(s) from '{source_folder}' to '{destination_folder}'.")
 
@@ -243,7 +242,6 @@ def move_back_files(source_folder, destination_folder):
         src_path = os.path.join(source_folder, filename)
         dst_path = os.path.join(destination_folder, filename)
         shutil.move(src_path, dst_path)
-        print(f"Moved: {filename}")
 
     print(f"\nMoved all files from '{source_folder}' to '{destination_folder}'.")
 
