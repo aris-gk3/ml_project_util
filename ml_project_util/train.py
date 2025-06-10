@@ -1,4 +1,5 @@
 import tensorflow as tf
+import os
 from tensorflow.keras.optimizers import Adam,AdamW, SGD # type: ignore
 from tensorflow.keras.callbacks import ModelCheckpoint # type: ignore
 from ml_project_util.load_preprocess import load_preprocess
@@ -27,6 +28,9 @@ def train(model, epochs, lr, optimizer, name, parent_name=None, is_binary=None, 
         model.compile(optimizer=optimizer, loss='categorical_crossentropy ', metrics=['accuracy'])
     else:
         raise ValueError("Wrong flag for number of classes")
+
+    folder_name = f"{PATH_SAVEDMODELS}/{name[:3]}"
+    os.makedirs(folder_name, exist_ok=True)  # exist_ok=True avoids error if it already exists
 
     checkpoint_path = f"{PATH_SAVEDMODELS}/{name[:3]}/{name}_{{epoch:03d}}_val{{val_loss:.4f}}.keras"
 
