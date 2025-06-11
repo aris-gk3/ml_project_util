@@ -18,13 +18,15 @@ def path_definition(platformarg='0'):
             
     if platform == 'Kaggle' or platformarg == 'Kaggle':
         BASE_PATH = '/kaggle/working'
-        PATH_DATASET = '/kaggle/input/catsdogsconv/KaggleCatsDogsConv'
+        PATH_DATASET = '/kaggle/input/catsdogsconv/CatsDogs/Train_val'
+        PATH_TEST = '/kaggle/input/catsdogsconv/CatsDogs/Test'
         PATH_RAWDATA = f'{BASE_PATH}/RawTrainingData'
         PATH_JOINEDDATA = f'{BASE_PATH}/JoinedTrainingData'
         PATH_SAVEDMODELS = f'{BASE_PATH}/SavedModels'
     elif platform == 'Colab' or platformarg == 'Colab':
         BASE_PATH = '/content/drive/MyDrive/Colab_Projects/CatsDogs'
-        PATH_DATASET = f'{BASE_PATH}/Dataset'
+        PATH_DATASET = f'{BASE_PATH}/Dataset/Train_val'
+        PATH_TEST = f'{BASE_PATH}/Dataset/Test'
         PATH_RAWDATA = f'{BASE_PATH}/Docs_Reports/RawTrainingData'
         PATH_JOINEDDATA = f'{BASE_PATH}/Docs_Reports/JoinedTrainingData'
         PATH_SAVEDMODELS = f'{BASE_PATH}/SavedModels'
