@@ -80,13 +80,13 @@ def model_evaluation_precise(model, batch_len=157, mode='test'):
     else:
         raise ValueError("Loss function of model is not recognized!")
 ##############
-
+    print('Start evaluating batches')
     batch_no = 0
     total_loss = 0.0
     total_samples = 0
     for batch in dataset:
         if batch_no < batch_len:
-            print(f'Batch Number: {batch_no}')
+            print(f'\rBatch Number: {batch_no}')
             batch_no = batch_no + 1
 
             images, labels = batch
