@@ -86,7 +86,7 @@ def model_evaluation_precise(model, batch_len=157, mode='test'):
     total_samples = 0
     for batch in dataset:
         if batch_no < batch_len:
-            print(f'\rBatch Number: {batch_no}')
+            print(f'\rBatch Number: {batch_no}', end='', flush=True)
             batch_no = batch_no + 1
 
             images, labels = batch
