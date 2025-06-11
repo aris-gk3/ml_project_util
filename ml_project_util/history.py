@@ -20,6 +20,8 @@ def concatenate_json(relpath1, relpath2, output_filename):
 
     result = {k: d1.get(k, []) + d2.get(k, []) for k in set(d1) | set(d2)}
 
+    parent_folder = os.path.dirname(fullpath_out)
+    os.makedirs(parent_folder, exist_ok=True)
     with open(fullpath_out, 'w') as out:
         json.dump(result, out, indent=4)
 
@@ -80,12 +82,10 @@ def save_json(history, json_name, parent=None):
     PATH_RAWDATA = dict['PATH_RAWDATA']
     filepath = f"{PATH_RAWDATA}/{json_name}.json"
 
-    # with open(filepath, 'w') as f:
-    #     json.dump(history.history, f)
-
     data = {"Parent Model": parent}
     data.update(history.history)
-    os.makedirs(filepath, exist_ok=True)
+    parent_folder = os.path.dirname(filepath)
+    os.makedirs(parent_folder, exist_ok=True)
     with open(filepath, 'w') as f:
         json.dump(data, f, indent=4)
 
@@ -100,7 +100,7 @@ def save_best_model_history(json_name, number, data_type='raw'):
         filepath = f'{PATH_RAWDATA}/{json_name}.json'
     elif data_type=='joined':
         filepath = f'{PATH_JOINEDDATA}/{json_name}.json'
-    
+
     with open(filepath, 'r') as f:
         history_dict = json.load(f)
 
@@ -113,6 +113,7 @@ def save_best_model_history(json_name, number, data_type='raw'):
             # Leave other data types unchanged
             history_best[key] = value
 
-    os.makedirs(filepath, exist_ok=True)
+    parent_folder = os.path.dirname(filepath)
+    os.makedirs(parent_folder, exist_ok=True)
     with open(filepath, 'w') as f:
         json.dump(history_best, f, indent=4)

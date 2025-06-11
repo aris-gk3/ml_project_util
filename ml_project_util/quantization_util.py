@@ -741,6 +741,8 @@ def input_range(mode='v', num_samples=300, filepath='0',force=0):
             else:
                 print("Invalid input.")
     if(mode=='s' or mode=='sv'):
+        parent_folder = os.path.dirname(tmp_filepath)
+        os.makedirs(parent_folder, exist_ok=True)
         with open(tmp_filepath, "w") as f:
             json.dump(input_dict, f, indent=4)
         print(f"Saved json in: {tmp_filepath}") 
@@ -832,6 +834,8 @@ def wt_range_search(model, model_name, mode='sv', filepath='0', force=0):
                 print("Invalid input.")
 
     if mode=='s' or mode=='sv':
+        parent_folder = os.path.dirname(tmp_filepath)
+        os.makedirs(parent_folder, exist_ok=True)
         with open(tmp_filepath, "w") as f:
             json.dump(layer_ranges, f, indent=4)
         print(f"Saved json in: {tmp_filepath}")
@@ -942,6 +946,8 @@ def activation_range_search(sampled_files, model, model_name, mode='sv', filepat
             filepath = f"{BASE_PATH}/Docs_Reports/Quant/Ranges/{short_name}_activation_sw_range.json"        
         # Save json if it doesn't exist or force
         if not os.path.exists(filepath) or force==1:
+            parent_folder = os.path.dirname(filepath)
+            os.makedirs(parent_folder, exist_ok=True)
             with open(filepath, "w") as f:
                 json.dump(range_serializable, f, indent=4)
             print(f'Saved activation ranges in {filepath}')
@@ -1055,6 +1061,8 @@ def wt_scale_search(wt_range_dict, model_name, filepath='0', force=0, mode='sv')
                 print("Invalid input.")
 
     if mode=='s' or mode=='sv':
+        parent_folder = os.path.dirname(tmp_filepath)
+        os.makedirs(parent_folder, exist_ok=True)
         with open(tmp_filepath, "w") as f:
             json.dump(wt_scale_dict, f, indent=4)
         print(f"Saved json in: {tmp_filepath}")
@@ -1132,6 +1140,8 @@ def activation_sw_scale_search(activation_sw_range_dict, model_name, filepath='0
                 print("Invalid input.")
 
     if mode=='s' or mode=='sv':
+        parent_folder = os.path.dirname(tmp_filepath)
+        os.makedirs(parent_folder, exist_ok=True)        
         with open(tmp_filepath, "w") as f:
             json.dump(activation_sw_scale_dict, f, indent=4)
         print(f"Saved json in: {tmp_filepath}")
@@ -1272,7 +1282,8 @@ def activation_hw_search(model_name, activation_sw_range_dict, activation_sw_sca
         # with open(tmp_filepath, "w") as f:
         #     json.dump(activation_shift_dict, f, indent=4)
         # print(f"Saved shift json in: {tmp_filepath}")
-        os.makedirs(tmp_filepath, exist_ok=True)
+        parent_folder = os.path.dirname(tmp_filepath)
+        os.makedirs(parent_folder, exist_ok=True)
         with open(tmp_filepath, "w") as f:
             json.dump(complete_dict, f, indent=4)
         print(f"Saved complete_dict json in: {tmp_filepath}")
@@ -1546,7 +1557,8 @@ def quant_model(model, model_name, num_bits=8, design='hw', batch_len=157, force
         except:
             metric_dict = {}
         metric_dict[f'{num_bits}b'] = {'accuracy': float(acc), 'loss': float(loss)}
-        os.makedirs(tmp_filepath, exist_ok=True)
+        parent_folder = os.path.dirname(tmp_filepath)
+        os.makedirs(parent_folder, exist_ok=True)
         with open(tmp_filepath, 'w') as f:
             json.dump(metric_dict, f, indent=4)
     
