@@ -1264,7 +1264,7 @@ def activation_hw_search(model_name, activation_sw_range_dict, activation_sw_sca
                 print('\n')
             
             activation_hw_scale_dict[layer_list[i]] = scale
-            activation_hw_range_dict[layer_list[i]] = {'min': -hw_max, 'max': hw_max}
+            activation_hw_range_dict[layer_list[i]] = {'min': 0, 'max': hw_max}
             activation_shift_dict[layer_list[i]] = shift
 
         complete_dict = {
