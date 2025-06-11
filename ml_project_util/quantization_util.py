@@ -1262,15 +1262,17 @@ def activation_hw_search(model_name, activation_sw_range_dict, activation_sw_sca
                 print("Invalid input.")
 
     if mode=='s' or mode=='sv':
-        with open(tmp_filepath, "w") as f:
-            json.dump(activation_hw_scale_dict, f, indent=4)
-        print(f"Saved hw_scale json in: {tmp_filepath}")
-        with open(tmp_filepath, "w") as f:
-            json.dump(activation_hw_range_dict, f, indent=4)
-        print(f"Saved hw_range json in: {tmp_filepath}")
-        with open(tmp_filepath, "w") as f:
-            json.dump(activation_shift_dict, f, indent=4)
-        print(f"Saved shift json in: {tmp_filepath}")
+        # Changed if I want to save separate json files
+        # with open(tmp_filepath, "w") as f:
+        #     json.dump(activation_hw_scale_dict, f, indent=4)
+        # print(f"Saved hw_scale json in: {tmp_filepath}")
+        # with open(tmp_filepath, "w") as f:
+        #     json.dump(activation_hw_range_dict, f, indent=4)
+        # print(f"Saved hw_range json in: {tmp_filepath}")
+        # with open(tmp_filepath, "w") as f:
+        #     json.dump(activation_shift_dict, f, indent=4)
+        # print(f"Saved shift json in: {tmp_filepath}")
+        os.makedirs(tmp_filepath, exist_ok=True)
         with open(tmp_filepath, "w") as f:
             json.dump(complete_dict, f, indent=4)
         print(f"Saved complete_dict json in: {tmp_filepath}")
@@ -1544,7 +1546,7 @@ def quant_model(model, model_name, num_bits=8, design='hw', batch_len=157, force
         except:
             metric_dict = {}
         metric_dict[f'{num_bits}b'] = {'accuracy': float(acc), 'loss': float(loss)}
-
+        os.makedirs(tmp_filepath, exist_ok=True)
         with open(tmp_filepath, 'w') as f:
             json.dump(metric_dict, f, indent=4)
     

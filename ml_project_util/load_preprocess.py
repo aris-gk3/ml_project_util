@@ -153,6 +153,7 @@ def move_random_files_old(source_folder, destination_folder, percent=15, test_fi
         # Generate random list of files to be moved
         files_to_move = random.sample(all_files, num_to_move)
         # Save list to .txt file
+        os.makedirs(test_files_path, exist_ok=True)
         with open(test_files_path, "w") as f:
             for d in files_to_move:
                 f.write(d + "\n")
@@ -217,6 +218,7 @@ def move_random_files(source_folder, destination_folder, percent=15, test_files_
         # Generate random list of files to be moved
         files_to_move = random.sample(all_files, num_to_move)
         # Save list to .txt file
+        os.makedirs(test_files_path, exist_ok=True)
         with open(test_files_path, "w") as f:
             for d in files_to_move:
                 f.write(d + "\n")

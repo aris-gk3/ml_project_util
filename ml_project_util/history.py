@@ -1,4 +1,5 @@
 import json
+import os
 import matplotlib.pyplot as plt
 from .path import path_definition
 
@@ -84,6 +85,7 @@ def save_json(history, json_name, parent=None):
 
     data = {"Parent Model": parent}
     data.update(history.history)
+    os.makedirs(filepath, exist_ok=True)
     with open(filepath, 'w') as f:
         json.dump(data, f, indent=4)
 
@@ -111,5 +113,6 @@ def save_best_model_history(json_name, number, data_type='raw'):
             # Leave other data types unchanged
             history_best[key] = value
 
+    os.makedirs(filepath, exist_ok=True)
     with open(filepath, 'w') as f:
         json.dump(history_best, f, indent=4)
