@@ -31,9 +31,10 @@ def model_evaluation(model):
     print(f'Validation loss is: {loss}')
     print(f'Validation accuracy is: {accuracy}')
 
-def model_evaluation_precise(model, batch_len=157):
+def model_evaluation_precise(model, batch_len=157, mode='test'):
     dict = path_definition()
     PATH_DATASET = dict['PATH_DATASET']
+    PATH_TEST = dict['PATH_TEST']
 
     if (model.loss == 'categorical_crossentropy'):
         label_mode_str = 'categorical'
@@ -42,21 +43,31 @@ def model_evaluation_precise(model, batch_len=157):
     else:
         raise ValueError("Loss function of model is not recognized!")
 
-    val_dataset = image_dataset_from_directory(
-        PATH_DATASET,
+    if (mode=='val'):
+        dataset = image_dataset_from_directory(
+            PATH_DATASET,
+            image_size=(224, 224),
+            batch_size=32,
+            label_mode=label_mode_str,
+            validation_split=0.2,  # 20% for validation
+            subset='validation',   # Use the 'validation' subset
+            seed=123
+        )
+    elif (mode=='test'):
+        dataset = image_dataset_from_directory(
+        PATH_TEST,
         image_size=(224, 224),
         batch_size=32,
         label_mode=label_mode_str,
-        validation_split=0.2,  # 20% for validation
-        subset='validation',   # Use the 'validation' subset
-        seed=123
+        shuffle=False  # usually no shuffle on test set
     )
+
     # Apply VGG-16 preprocessing
     def preprocess_img(image, label):
         image = preprocess_input(image)  # Apply VGG16-specific preprocessing
         return image, label
 
-    val_dataset = val_dataset.map(preprocess_img)
+    dataset = dataset.map(preprocess_img)
 
 ################
     # loss_metric = tf.keras.metrics.Mean()  # To average the loss over batches
