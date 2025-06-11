@@ -15,6 +15,7 @@ def path_definition(platformarg='0'):
             platform = os.getenv("PLATFORM")
         except: # Kaggle Notebook Definitions
             platform = 'Kaggle'
+            print('Kaggle platform detected!')
             
     if platform == 'Kaggle' or platformarg == 'Kaggle':
         BASE_PATH = '/kaggle/working'
