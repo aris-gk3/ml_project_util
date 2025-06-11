@@ -1565,7 +1565,7 @@ def quant_model(model, model_name, num_bits=8, design='hw', batch_len=157, force
     dict = path_definition()
     BASE_PATH = dict['BASE_PATH']
     save = 1
-    if(ask_message==1 & BASE_PATH[:7]!='/kaggle'):
+    if(ask_message==1 and BASE_PATH[:7]!='/kaggle'):
         while True:
             response = input("Do you want to overwrite previous data? (y/n): ").strip().lower()
             if response == 'y':
