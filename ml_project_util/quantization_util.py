@@ -1227,7 +1227,7 @@ def activation_hw_search(model_name, activation_sw_range_dict, activation_sw_sca
                 print(f'Scale accumulator: {scale_accumulator}')
                 print(f'Scale: {scale}')
                 print(f"Previous layer activation: {activation_sw_range_dict[layer_list[i-1]]['max']}")
-                print(f'Activation: {activation_sw_range_dict[layer_list[i]]['max']}')
+                print(f"Activation: {activation_sw_range_dict[layer_list[i]]['max']}")
             if(debug==1):
                 print(f'Quant_max: {quant_max}')
                 print(f'Quant_exp: {quant_exp}, for both signs.')
