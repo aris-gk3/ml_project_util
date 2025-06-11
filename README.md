@@ -21,6 +21,9 @@ To install on cloud notebooks ```!pip install git+https://github.com/aris-gk3/ml
 
 ## Folder Structure
 
+
+
+<pre>
 📁 project-root/
 ├── 📁 Dataset/
 │   ├── 📁 Train_val/
@@ -29,6 +32,8 @@ To install on cloud notebooks ```!pip install git+https://github.com/aris-gk3/ml
 │   ├── 📁 AnalysisPlots/
 │   ├── 📁 JoinedTrainingData/
 │   ├── 📁 Quant/
+│   │    ├── 📁 Metrics/
+│   │    └── 📁 Ranges/
 │   ├── 📁 RawTrainingData/
 │   └── 📁 TrainingPlots/
 ├── 📁 Notebooks/
@@ -43,17 +48,6 @@ To install on cloud notebooks ```!pip install git+https://github.com/aris-gk3/ml
 ├── .gitignore
 ├── README.md
 └── requirements.txt
-
-<pre>
-📁 project-root/
- ├── 📁 data/ 
- │ ├── train/ 
- │ └── test/ 
- ├── 📁 models/ 
- ├── 📁 scripts/ 
- │    ├── preprocess.py 
- │    └── train.py 
- └── README.md
 </pre>
 
 ## Testing
