@@ -842,7 +842,7 @@ def wt_range_search(model, model_name, mode='sv', filepath='0', force=0):
     return layer_ranges
 
 
-def activation_range_search(sampled_files, model, model_name, mode='sv', filepath='0', force=0):
+def activation_range_search(sampled_files, model, model_name, mode='sv', filepath='0', force=0, datatype='uint'):
     # s: save
     # v: verbose
     # sv: save & verbose
@@ -891,7 +891,12 @@ def activation_range_search(sampled_files, model, model_name, mode='sv', filepat
                 layers_list.append(layer.name)
 
         in_min, in_max = input_range(mode=mode)
-        layer_min_max[layers_list[0]] = {"min": -max(abs(in_min), in_max), "max": max(abs(in_min), in_max)}
+        if (datatype=='uint'):
+            layer_min_max[layers_list[0]] = {"min": 0, "max": max(abs(in_min), in_max)}
+        elif (datatype=='int'):
+            layer_min_max[layers_list[0]] = {"min": -max(abs(in_min), in_max), "max": max(abs(in_min), in_max)}
+        else:
+            ValueError('datatype of activation_range_search() is wrong!')
 
         # Process input files
         for file_path in sampled_files:
@@ -1070,19 +1075,24 @@ def wt_scale_search(wt_range_dict, model_name, filepath='0', force=0, mode='sv')
     return wt_scale_dict
 
 
-def compute_symmetric_int8_activation_scales(range_dict):
+def compute_activation_scales(range_dict, num_bits=8, precision='uint'):
     # q = r/scale
     scale_dict = {}
     for layer_name, layer_data in range_dict.items():
         w_min = layer_data["min"]
         w_max = layer_data["max"]
         max_abs = max(abs(w_min), abs(w_max))
-        scale = max_abs / 127 # scale = r/q
+        if (precision=='uint'):
+            scale = max_abs / (2**(num_bits)-1) # scale = r/q
+        elif (precision=='int'):
+            scale = max_abs / (2**(num_bits-1)-1) # scale = r/q
+        else:
+            ValueError('Wrong precision input!')
         scale_dict[layer_name] = scale
     return scale_dict
 
 
-def activation_sw_scale_search(activation_sw_range_dict, model_name, filepath='0', force=0, mode='sv'):
+def activation_sw_scale_search(activation_sw_range_dict, model_name, filepath='0', force=0, mode='sv', num_bits=8, precision='uint'):
     # s: save
     # v: verbose
     # sv: save & verbose
@@ -1092,7 +1102,7 @@ def activation_sw_scale_search(activation_sw_range_dict, model_name, filepath='0
         dict = path_definition()
         BASE_PATH = dict['BASE_PATH']
         short_name = model_name[:-10]
-        tmp_filepath = f"{BASE_PATH}/Docs_Reports/Quant/Ranges/{short_name}_activation_sw_scale.json"
+        tmp_filepath = f"{BASE_PATH}/Docs_Reports/Quant/Ranges/{short_name}_activation_sw_scale_{precision}.json"
     else:
         tmp_filepath = filepath
 
@@ -1118,7 +1128,7 @@ def activation_sw_scale_search(activation_sw_range_dict, model_name, filepath='0
         if os.path.exists(tmp_filepath):
             ask_message = 1
     if(calculate == 1):
-        activation_sw_scale_dict = compute_symmetric_int8_activation_scales(activation_sw_range_dict)
+        activation_sw_scale_dict = compute_activation_scales(activation_sw_range_dict, num_bits=num_bits, precision=precision)
 
     if mode=='v' or mode=='sv':
         for layer, scale in activation_sw_scale_dict.items():
@@ -1149,7 +1159,7 @@ def activation_sw_scale_search(activation_sw_range_dict, model_name, filepath='0
     return activation_sw_scale_dict
 
 
-def activation_hw_search(model_name, activation_sw_range_dict, activation_sw_scale_dict, wt_range_dict, wt_scale_dict, debug=0, force=0, filepath='0', mode='sv'):
+def activation_hw_search(model_name, activation_sw_range_dict, activation_sw_scale_dict, wt_range_dict, wt_scale_dict, debug=0, force=0, filepath='0', mode='sv', num_bits=8, precision='uint'):
     # s: save
     # v: verbose
     # sv: save & verbose
@@ -1200,7 +1210,13 @@ def activation_hw_search(model_name, activation_sw_range_dict, activation_sw_sca
             print(layer_list)
             print('\n')
 
-        scale = activation_sw_scale_dict[layer_list[0]]
+        # scale = activation_sw_scale_dict[layer_list[0]]
+        if (precision=='uint'):
+            scale = activation_sw_range_dict[layer_list[0]]['max'] / (2**(num_bits)-1)
+        elif (precision=='int'):
+            scale = activation_sw_range_dict[layer_list[0]]['max'] / (2**(num_bits-1)-1)
+        else:
+            ValueError()
 
         # Initialize dictionaries
         activation_hw_scale_dict = {}
@@ -1217,11 +1233,19 @@ def activation_hw_search(model_name, activation_sw_range_dict, activation_sw_sca
             scale_prev = scale
             scale_accumulator = scale_prev * wt_scale_dict[layer_list[i]]
             quant_max = activation_sw_range_dict[layer_list[i]]['max'] / scale_accumulator # q = r/scale
-            quant_exp = math.ceil(math.log2(2*quant_max)) # multiply with 2 for both signs
+            if (precision=='int'):
+                quant_max = 2*quant_max
+
+            quant_exp = math.ceil(math.log2(quant_max))
             quant_poweroftwo = 2 ** quant_exp
-            shift = quant_exp - 8
+            shift = quant_exp - num_bits
             scale = scale_accumulator*(2**shift)
-            hw_max = 127 * scale  # r = q*scale
+            if (precision=='uint'):
+                hw_max = ((2**(num_bits)-1)) * scale  # r = q*scale
+            elif (precision=='int'):
+                hw_max = ((2**(num_bits-1)-1)) * scale  # r = q*scale
+            else:
+                ValueError('Wrong precision input!')
 
             if(verbose==1):
                 print(f'Scale accumulator: {scale_accumulator}')
