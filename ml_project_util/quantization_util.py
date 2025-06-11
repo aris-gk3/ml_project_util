@@ -1216,7 +1216,7 @@ def activation_hw_search(model_name, activation_sw_range_dict, activation_sw_sca
         elif (precision=='int'):
             scale = activation_sw_range_dict[layer_list[0]]['max'] / (2**(num_bits-1)-1)
         else:
-            ValueError()
+            ValueError('Wrong precision has been given to activation_hw_search()')
 
         # Initialize dictionaries
         activation_hw_scale_dict = {}
@@ -1429,7 +1429,7 @@ def quant_activations(model, model_name, num_bits=8, input_shape=(224,224,3), mo
     return quant_activation_model, acc, loss
 
 
-def quant_weights(model, model_name, num_bits=8, range_path='0', quant='symmetric', mode='eval', design='hw', batch_len=157):
+def quant_weights(model, model_name, num_bits=8, range_path='0', quant='symmetric', mode='eval', design='hw', batch_len=157, precision='uint'):
     # quant: returns model with quantized weights
     # eval: evaluates model with quantized weights & returns model with quantized weights
     if(quant!='symmetric'):
@@ -1463,7 +1463,7 @@ def quant_weights(model, model_name, num_bits=8, range_path='0', quant='symmetri
         
         # activation_sw_scale_dict_path = f"{BASE_PATH}/Docs_Reports/Quant/Ranges/{short_name}_activation_sw_scale.json"
         # if not (os.path.isfile(activation_sw_scale_dict_path)):
-        activation_sw_scale_dict = activation_sw_scale_search(activation_sw_range_dict, model_name, filepath='0', force=0, mode='s')
+        activation_sw_scale_dict = activation_sw_scale_search(activation_sw_range_dict, model_name, filepath='0', force=0, mode='s', precision=precision)
         
         # wt_range_dict_path = f"{BASE_PATH}/Docs_Reports/Quant/Ranges/{short_name}_wt_range.json"
         # if not (os.path.isfile(wt_range_dict_path)):
@@ -1473,7 +1473,7 @@ def quant_weights(model, model_name, num_bits=8, range_path='0', quant='symmetri
         # if not (os.path.isfile()):
         wt_scale_dict = wt_scale_search(wt_range_dict, model_name, filepath='0', force=0, mode='s')
         
-        complete_dict = activation_hw_search(model_name, activation_sw_range_dict, activation_sw_scale_dict, wt_range_dict, wt_scale_dict, mode='s')
+        complete_dict = activation_hw_search(model_name, activation_sw_range_dict, activation_sw_scale_dict, wt_range_dict, wt_scale_dict, mode='s', precision=precision)
         activation_ranges = complete_dict['activation_hw_range_dict']
     elif design == 'sw':
         sampled_files = gen_sample_paths()
@@ -1530,7 +1530,7 @@ def quant_weights(model, model_name, num_bits=8, range_path='0', quant='symmetri
     return model, acc, loss
 
 
-def quant_model(model, model_name, num_bits=8, design='hw', batch_len=157, force=0):
+def quant_model(model, model_name, num_bits=8, design='hw', batch_len=157, force=0, precision='uint'):
     # checks if for bw there is already a value in json, hanldes it as above
     dict = path_definition()
     BASE_PATH = dict['BASE_PATH']
@@ -1556,7 +1556,7 @@ def quant_model(model, model_name, num_bits=8, design='hw', batch_len=157, force
         ask_message = 0
 
     if(calculate==1):
-        qw_model, _, _ = quant_weights(model, model_name, num_bits=num_bits, mode='quant', design=design, batch_len=batch_len)
+        qw_model, _, _ = quant_weights(model, model_name, num_bits=num_bits, mode='quant', design=design, batch_len=batch_len, precision=precision)
         qwa_model, acc, loss = quant_activations(qw_model, model_name, num_bits=num_bits, mode='eval', design=design, batch_len=batch_len)
     else:
         qwa_model = None
