@@ -104,7 +104,7 @@ def model_evaluation_precise(model, batch_len=157, mode='test'):
     # final_loss = loss_metric.result().numpy() / (batch_len * 32)  # total samples = batches * batch_size
     final_loss = total_loss / total_samples  # average per sample
 
-    print(f"Precise val accuracy: {final_acc:.5f}")
-    print(f"Precise val loss: {final_loss:.5f}")
+    print(f"\nPrecise {mode} accuracy: {final_acc:.5f}")
+    print(f"Precise {mode} loss: {final_loss:.5f}")
 
     return final_acc, final_loss
