@@ -1586,14 +1586,26 @@ def quant_model(model, model_name, num_bits=8, design='hw', batch_len=157, force
         with open(tmp_filepath, 'w') as f:
             json.dump(metric_dict, f, indent=4)
     
-    return qwa_model
+    return qwa_model, acc, loss
 
 
-def quant_bw_search():
+def quant_bw_search(model, model_name):
+
+    sw_metrics = {}
+    hww_metrics = {}
 
     for i in range(6,32):
-        quant_model(num_bits=i)
+        _, acc, loss = quant_model(model, model_name, num_bits=i, design='sw', batch_len=1000, force=1, precision='uint')
+        sw_metrics = {f"{i}b":
+                        {"accuracy": acc, "loss": loss}}
+        _, acc, loss = quant_model(model, model_name, num_bits=i, design='hw', batch_len=1000, force=1, precision='uint')
+        hww_metrics = {f"{i}b":
+                        {"accuracy": acc, "loss": loss}}
+        # add to json: sw, hww, hwa
 
+    # print json
+    print(json.dumps(sw_metrics, indent=4))
+    print(json.dumps(hww_metrics, indent=4))
     # plot the json
 
 
