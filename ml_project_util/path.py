@@ -1,6 +1,6 @@
 ### Find most used paths in all enviroments/machines
 
-def path_definition(platformarg='0'):
+def path_definition(ds_rel_path=None):
     try: # Google Colab Definitions
         from google.colab import drive # type: ignore
         drive.mount('/content/drive')
@@ -15,22 +15,33 @@ def path_definition(platformarg='0'):
             platform = os.getenv("PLATFORM")
         except: # Kaggle Notebook Definitions
             platform = 'Kaggle'
+
+    # Saves inside function & reuses ds_rel_path
+    # Initialize saved config if it doesn't exist
+    if not hasattr(path_definition, "config"):
+        path_definition.config = {}
+    # Set values if provided
+    if ds_rel_path is not None:
+        path_definition.config["ds_rel_path"] = ds_rel_path
+        print(f"ds_rel_path set to: {ds_rel_path}")
+    # Use stored values
+    ds_rel_path = path_definition.config.get("ds_rel_path", "unknown")
             
-    if platform == 'Kaggle' or platformarg == 'Kaggle':
+    if platform == 'Kaggle':
         BASE_PATH = '/kaggle/working'
-        PATH_DATASET = '/kaggle/input/catsdogsconv/CatsDogs/Train_val'
-        PATH_TEST = '/kaggle/input/catsdogsconv/CatsDogs/Test'
+        PATH_DATASET = f"/kaggle/input/{ds_rel_path}/Train_val"
+        PATH_TEST = f"/kaggle/input/{ds_rel_path}/Test"
         PATH_RAWDATA = f'{BASE_PATH}/Docs_Reports/RawTrainingData'
         PATH_JOINEDDATA = f'{BASE_PATH}/Docs_Reports/JoinedTrainingData'
         PATH_SAVEDMODELS = f'{BASE_PATH}/SavedModels'
-    elif platform == 'Colab' or platformarg == 'Colab':
-        BASE_PATH = '/content/drive/MyDrive/Colab_Projects/CatsDogs'
+    elif platform == 'Colab':
+        BASE_PATH = f'/content/drive/MyDrive/Colab_Projects/{ds_rel_path}'
         PATH_DATASET = f'{BASE_PATH}/Dataset/Train_val'
         PATH_TEST = f'{BASE_PATH}/Dataset/Test'
         PATH_RAWDATA = f'{BASE_PATH}/Docs_Reports/RawTrainingData'
         PATH_JOINEDDATA = f'{BASE_PATH}/Docs_Reports/JoinedTrainingData'
         PATH_SAVEDMODELS = f'{BASE_PATH}/SavedModels'
-    elif platform in ['Local', 'LocalRM', 'LocalOldLaptop'] or platformarg in ['Local', 'LocalRM', 'LocalOldLaptop']:
+    elif platform in ['Local', 'LocalRM', 'LocalOldLaptop']:
         # load from .env
         BASE_PATH = os.getenv("BASE_PATH")
         PATH_DATASET = os.getenv("PATH_DATASET")
