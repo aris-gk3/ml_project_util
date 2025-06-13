@@ -1,6 +1,6 @@
 ### Find most used paths in all enviroments/machines
 
-def path_definition(platformarg='0'):
+def path_definition(platformarg='0', kaggle_ds=''):
     try: # Google Colab Definitions
         from google.colab import drive # type: ignore
         drive.mount('/content/drive')
@@ -18,8 +18,8 @@ def path_definition(platformarg='0'):
             
     if platform == 'Kaggle' or platformarg == 'Kaggle':
         BASE_PATH = '/kaggle/working'
-        PATH_DATASET = '/kaggle/input/catsdogsconv/CatsDogs/Train_val'
-        PATH_TEST = '/kaggle/input/catsdogsconv/CatsDogs/Test'
+        PATH_DATASET = '/kaggle/input/{kaggle_ds}/Train_val'
+        PATH_TEST = '/kaggle/input/{kaggle_ds}/Test'
         PATH_RAWDATA = f'{BASE_PATH}/Docs_Reports/RawTrainingData'
         PATH_JOINEDDATA = f'{BASE_PATH}/Docs_Reports/JoinedTrainingData'
         PATH_SAVEDMODELS = f'{BASE_PATH}/SavedModels'
