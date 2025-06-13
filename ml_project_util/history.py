@@ -76,6 +76,34 @@ def plot_json(json_name, img_name, data_type='raw'):
     plt.show()
 
 
+def plot_history(history):
+    # Plot training & validation accuracy values
+    plt.figure(figsize=(12, 5))
+
+    # Accuracy
+    plt.subplot(1, 2, 1)
+    plt.plot(history.history['accuracy'], label='Train Accuracy')
+    if 'val_accuracy' in history.history:
+        plt.plot(history.history['val_accuracy'], label='Val Accuracy')
+    plt.title('Model Accuracy')
+    plt.xlabel('Epoch')
+    plt.ylabel('Accuracy')
+    plt.legend()
+
+    # Loss
+    plt.subplot(1, 2, 2)
+    plt.plot(history.history['loss'], label='Train Loss')
+    if 'val_loss' in history.history:
+        plt.plot(history.history['val_loss'], label='Val Loss')
+    plt.title('Model Loss')
+    plt.xlabel('Epoch')
+    plt.ylabel('Loss')
+    plt.legend()
+
+    plt.tight_layout()
+    plt.show()
+
+
 # only name as argument
 def save_json(history, json_name, parent=None):
     dict = path_definition()

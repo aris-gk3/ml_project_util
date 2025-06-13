@@ -1,15 +1,17 @@
 import tensorflow as tf
 import os
+import matplotlib.pyplot as plt
 from tensorflow.keras.optimizers import Adam,AdamW, SGD # type: ignore
 from tensorflow.keras.callbacks import ModelCheckpoint # type: ignore
-from ml_project_util.load_preprocess import load_preprocess
-from ml_project_util.path import path_definition
-from ml_project_util.history import save_json
+from .load_preprocess import load_preprocess
+from .path import path_definition
+from .history import save_json
+from .history import plot_history
 
 
 ### Function for quick training
 
-def train(model, epochs, lr, optimizer, name, parent_name=None, is_binary=None, save_best=False, save_models=True):
+def train(model, epochs, lr, optimizer, name, parent_name=None, is_binary=None, save_best=False, save_models=True, plot=False):
     train_dataset, val_dataset = load_preprocess()
 
     if optimizer == 'Adam':
@@ -56,6 +58,8 @@ def train(model, epochs, lr, optimizer, name, parent_name=None, is_binary=None, 
         validation_data=val_dataset,
         callbacks=[checkpoint_callback]
     )
+
+    plot_history(history)
 
     save_json(history, name, parent_name)
 
