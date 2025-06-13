@@ -25,7 +25,7 @@ def train(model, epochs, lr, optimizer, name, parent_name=None, is_binary=None, 
     if (is_binary == 1):
         model.compile(optimizer=optimizer, loss='binary_crossentropy', metrics=['accuracy'])
     elif (is_binary == 0):
-        model.compile(optimizer=optimizer, loss='categorical_crossentropy ', metrics=['accuracy'])
+        model.compile(optimizer=optimizer, loss='categorical_crossentropy', metrics=['accuracy'])
     else:
         raise ValueError("Wrong flag for number of classes")
 
