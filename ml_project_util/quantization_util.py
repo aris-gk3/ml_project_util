@@ -1589,24 +1589,62 @@ def quant_model(model, model_name, num_bits=8, design='hw', batch_len=157, force
     return qwa_model, acc, loss
 
 
-def quant_bw_search(model, model_name):
+def quant_bw_search(model, model_name, range):
 
     sw_metrics = {}
     hww_metrics = {}
 
-    for i in range(6,32):
+    for i in range:
         _, acc, loss = quant_model(model, model_name, num_bits=i, design='sw', batch_len=1000, force=1, precision='uint')
         sw_metrics = {f"{i}b":
-                        {"accuracy": acc, "loss": loss}}
+                        {"accuracy": float(acc), "loss": float(loss)}}
         _, acc, loss = quant_model(model, model_name, num_bits=i, design='hw', batch_len=1000, force=1, precision='uint')
         hww_metrics = {f"{i}b":
-                        {"accuracy": acc, "loss": loss}}
+                        {"accuracy": float(acc), "loss": float(loss)}}
         # add to json: sw, hww, hwa
+
+    sorted_keys = sorted(sw_metrics.keys(), key=lambda x: int(x[:-1]))
+    # plot
+    # Extract x (labels), accuracies and losses
+    x_labels = sorted_keys
+    # Extract accuracy values
+    sw_accuracy = [sw_metrics[k]["accuracy"] for k in sorted_keys]
+    hww_accuracy = [hww_metrics[k]["accuracy"] for k in sorted_keys]
+    sw_loss = [sw_metrics[k]["loss"] for k in sorted_keys]
+    hww_loss = [hww_metrics[k]["loss"] for k in sorted_keys]
+
+    # Plot accuracies
+    plt.figure(figsize=(8, 4))
+    plt.plot(sorted_keys, sw_accuracy, marker='o', label='SW Accuracy', color='blue')
+    plt.plot(sorted_keys, hww_accuracy, marker='x', label='HWW Accuracy', color='orange')
+
+    plt.title("Accuracy Comparison")
+    plt.xlabel("Block")
+    plt.ylabel("Accuracy")
+    plt.legend()
+    plt.grid(True)
+    plt.tight_layout()
+    plt.show()
+
+    # Plot losses
+
+    plt.figure(figsize=(8, 4))
+    plt.plot(sorted_keys, sw_loss, marker='o', label='SW Loss', color='blue')
+    plt.plot(sorted_keys, hww_loss, marker='x', label='HWW Loss', color='orange')
+
+    plt.title("Loss Comparison")
+    plt.xlabel("Block")
+    plt.ylabel("Accuracy")
+    plt.legend()
+    plt.grid(True)
+    plt.tight_layout()
+    plt.show()
 
     # print json
     print(json.dumps(sw_metrics, indent=4))
     print(json.dumps(hww_metrics, indent=4))
     # plot the json
+
 
 
 ### Model transformation utilities
