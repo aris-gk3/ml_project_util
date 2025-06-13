@@ -1415,10 +1415,7 @@ def quant_activations(model, model_name, num_bits=8, input_shape=(224,224,3), mo
 
     # quant model and evaluate
     quant_activation_model = clone_model_with_fake_quant(model, input_shape, range_dict, num_bits=num_bits)
-    # if(binary==1):
-    #     quant_activation_model.compile(optimizer='adam', loss='sparse_categorical_crossentropy', metrics=['accuracy'])    # else:
-    #     quant_activation_model.compile(optimizer='adam', loss='binary_crossentropy', metrics=['accuracy'])
-    quant_activation_model.compile(optimizer='adam', loss='binary_crossentropy', metrics=['accuracy'])
+    quant_activation_model.compile(optimizer='adam', loss=model.loss, metrics=['accuracy'])
 
     if (mode=='eval'):
         acc, loss = model_evaluation_precise(quant_activation_model, batch_len=batch_len, mode='test')
