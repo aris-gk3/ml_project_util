@@ -1596,11 +1596,9 @@ def quant_bw_search(model, model_name, range):
 
     for i in range:
         _, acc, loss = quant_model(model, model_name, num_bits=i, design='sw', batch_len=1000, force=1, precision='uint')
-        sw_metrics = {f"{i}b":
-                        {"accuracy": float(acc), "loss": float(loss)}}
+        sw_metrics[f"{i}b"] = {"accuracy": float(acc), "loss": float(loss)}
         _, acc, loss = quant_model(model, model_name, num_bits=i, design='hw', batch_len=1000, force=1, precision='uint')
-        hww_metrics = {f"{i}b":
-                        {"accuracy": float(acc), "loss": float(loss)}}
+        hww_metrics[f"{i}b"] = {"accuracy": float(acc), "loss": float(loss)}
         # add to json: sw, hww, hwa
 
     sorted_keys = sorted(sw_metrics.keys(), key=lambda x: int(x[:-1]))
