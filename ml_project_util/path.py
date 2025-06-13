@@ -18,8 +18,8 @@ def path_definition(platformarg='0', kaggle_ds=''):
             
     if platform == 'Kaggle' or platformarg == 'Kaggle':
         BASE_PATH = '/kaggle/working'
-        PATH_DATASET = '/kaggle/input/{kaggle_ds}/Train_val'
-        PATH_TEST = '/kaggle/input/{kaggle_ds}/Test'
+        PATH_DATASET = f'/kaggle/input/{kaggle_ds}/Train_val'
+        PATH_TEST = f'/kaggle/input/{kaggle_ds}/Test'
         PATH_RAWDATA = f'{BASE_PATH}/Docs_Reports/RawTrainingData'
         PATH_JOINEDDATA = f'{BASE_PATH}/Docs_Reports/JoinedTrainingData'
         PATH_SAVEDMODELS = f'{BASE_PATH}/SavedModels'
