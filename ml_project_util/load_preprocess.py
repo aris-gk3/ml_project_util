@@ -114,6 +114,8 @@ def load_preprocess(augmentation_pipeline=None):
     train_dataset = train_dataset.map(preprocess_img)
     val_dataset = val_dataset.map(preprocess_img)
 
+    return train_dataset, val_dataset
+
 
 
 def test_split(percent=15, verbose=1):
