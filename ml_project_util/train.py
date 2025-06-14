@@ -11,8 +11,8 @@ from .history import plot_history
 
 ### Function for quick training
 
-def train(model, epochs, lr, optimizer, name, parent_name=None, is_binary=None, save_best=False, save_models=True, plot=False):
-    train_dataset, val_dataset = load_preprocess()
+def train(model, epochs, lr, optimizer, name, parent_name=None, is_binary=None, save_best=False, save_models=True, plot=False, augmentation_pipeline=None):
+    train_dataset, val_dataset = load_preprocess(augmentation_pipeline=augmentation_pipeline)
 
     if optimizer == 'Adam':
         optimizer = Adam(learning_rate=lr)
