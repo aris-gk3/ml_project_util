@@ -10,25 +10,83 @@ from .path import path_definition
 
 ### Implements all step of training and preprocessing
 
-def load_preprocess():    
+# def load_preprocess_old():    
+#     dict = path_definition()
+#     PATH_DATASET = dict['PATH_DATASET']
+
+#     subfolders = [f.name for f in os.scandir(PATH_DATASET) if f.is_dir()]
+#     if (len(subfolders)==2):
+#         label_mode_str = 'binary'
+#     elif (len(subfolders)>2):
+#         label_mode_str = 'categorical'
+#     else:
+#         raise ValueError("Wrong Nnumber of subfolder for each class!")
+
+#     train_dataset = image_dataset_from_directory(
+#         PATH_DATASET,
+#         image_size=(224, 224),
+#         batch_size=32,
+#         label_mode=label_mode_str,
+#         validation_split=0.2,  # 20% for validation
+#         subset='training',     # Use the 'training' subset
+#         seed=123
+#     )
+
+#     val_dataset = image_dataset_from_directory(
+#         PATH_DATASET,
+#         image_size=(224, 224),
+#         batch_size=32,
+#         label_mode=label_mode_str,
+#         validation_split=0.2,  # 20% for validation
+#         subset='validation',   # Use the 'validation' subset
+#         seed=123
+#     )
+#     ## Preprocess & Augmentation
+#     data_augmentation = tf.keras.Sequential([
+#         layers.RandomFlip('horizontal'),
+#         layers.RandomRotation(0.1),  # 10% random rotation
+#         layers.RandomZoom(0.1),      # 10% zoom
+#         layers.RandomTranslation(0.1, 0.1),  # Random height and width shift
+#         layers.RandomBrightness(0.2)
+#     ])
+
+
+#     def augment_img(image, label):
+#         image = data_augmentation(image)  # Apply augmentations
+#         return image, label
+
+#     train_dataset = train_dataset.map(augment_img)
+
+#     def preprocess_img(image, label):
+#         image = preprocess_input(image)  # Apply VGG16-specific preprocessing
+#         return image, label
+
+#     train_dataset = train_dataset.map(preprocess_img)
+#     val_dataset = val_dataset.map(preprocess_img)
+
+#     return train_dataset, val_dataset
+
+
+def load_preprocess(augmentation_pipeline=None):    
     dict = path_definition()
     PATH_DATASET = dict['PATH_DATASET']
 
     subfolders = [f.name for f in os.scandir(PATH_DATASET) if f.is_dir()]
-    if (len(subfolders)==2):
+    if len(subfolders) == 2:
         label_mode_str = 'binary'
-    elif (len(subfolders)>2):
+    elif len(subfolders) > 2:
         label_mode_str = 'categorical'
     else:
-        raise ValueError("Wrong Nnumber of subfolder for each class!")
+        raise ValueError("Wrong number of subfolders for each class!")
 
+    # Load training and validation datasets
     train_dataset = image_dataset_from_directory(
         PATH_DATASET,
         image_size=(224, 224),
         batch_size=32,
         label_mode=label_mode_str,
-        validation_split=0.2,  # 20% for validation
-        subset='training',     # Use the 'training' subset
+        validation_split=0.2,
+        subset='training',
         seed=123
     )
 
@@ -37,34 +95,25 @@ def load_preprocess():
         image_size=(224, 224),
         batch_size=32,
         label_mode=label_mode_str,
-        validation_split=0.2,  # 20% for validation
-        subset='validation',   # Use the 'validation' subset
+        validation_split=0.2,
+        subset='validation',
         seed=123
     )
-    ## Preprocess & Augmentation
-    data_augmentation = tf.keras.Sequential([
-        layers.RandomFlip('horizontal'),
-        layers.RandomRotation(0.1),  # 10% random rotation
-        layers.RandomZoom(0.1),      # 10% zoom
-        layers.RandomTranslation(0.1, 0.1),  # Random height and width shift
-        layers.RandomBrightness(0.2)
-    ])
 
+    # Apply data augmentation if provided
+    if augmentation_pipeline is not None:
+        def augment_img(image, label):
+            return augmentation_pipeline(image, training=True), label
+        train_dataset = train_dataset.map(augment_img)
 
-    def augment_img(image, label):
-        image = data_augmentation(image)  # Apply augmentations
-        return image, label
-
-    train_dataset = train_dataset.map(augment_img)
-
+    # Apply model-specific preprocessing (e.g., VGG16)
     def preprocess_img(image, label):
-        image = preprocess_input(image)  # Apply VGG16-specific preprocessing
+        image = preprocess_input(image)
         return image, label
 
     train_dataset = train_dataset.map(preprocess_img)
     val_dataset = val_dataset.map(preprocess_img)
 
-    return train_dataset, val_dataset
 
 
 def test_split(percent=15, verbose=1):
