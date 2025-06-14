@@ -58,8 +58,8 @@ def train(model, epochs, lr, optimizer, name, parent_name=None, is_binary=None, 
         validation_data=val_dataset,
         callbacks=[checkpoint_callback]
     )
-
-    plot_history(history)
+    if plot:
+        plot_history(history)
 
     save_json(history, name, parent_name)
 
