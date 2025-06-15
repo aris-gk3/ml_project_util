@@ -12,9 +12,9 @@ def concatenate_json(relpath1, relpath2, output_filename):
     BASE_PATH = dict['BASE_PATH']
     PATH_JOINEDDATA = dict['PATH_JOINEDDATA']
     
-    fullpath1 = f'{BASE_PATH}/Docs_Reports/{relpath1}'
-    fullpath2 = f'{BASE_PATH}/Docs_Reports/{relpath2}'
-    fullpath_out = f'{PATH_JOINEDDATA}/{output_filename}'
+    fullpath1 = f'{BASE_PATH}/Docs_Reports/{relpath1}/'
+    fullpath2 = f'{BASE_PATH}/Docs_Reports/{relpath2}/'
+    fullpath_out = f'{PATH_JOINEDDATA}/{output_filename}/'
     with open(fullpath1) as f1, open(fullpath2) as f2:
         d1, d2 = json.load(f1), json.load(f2)
 

@@ -2,7 +2,7 @@ import tensorflow as tf
 import os
 import matplotlib.pyplot as plt
 from tensorflow.keras.optimizers import Adam,AdamW, SGD # type: ignore
-from tensorflow.keras.callbacks import ModelCheckpoint # type: ignore
+from tensorflow.keras.callbacks import ModelCheckpoint, EarlyStopping # type: ignore
 from .load_preprocess import load_preprocess
 from .path import path_definition
 from .history import save_json
@@ -11,7 +11,7 @@ from .history import plot_history
 
 ### Function for quick training
 
-def train(model, epochs, lr, optimizer, name, parent_name=None, is_binary=None, save_best=False, save_models=True, plot=False, augmentation_pipeline=None):
+def train(model, epochs, lr, optimizer, name, parent_name=None, is_binary=None, save_best=False, save_models=True, plot=False, augmentation_pipeline=None, early_stopping=False):
     train_dataset, val_dataset = load_preprocess(augmentation_pipeline=augmentation_pipeline)
 
     if optimizer == 'Adam':
@@ -52,11 +52,21 @@ def train(model, epochs, lr, optimizer, name, parent_name=None, is_binary=None, 
     else:
         checkpoint_callback = None
 
+    if (early_stopping):
+        early_stopping_callback = EarlyStopping(monitor='val_loss',
+                                              patience=4)
+        if (save_best):
+            print('Will stop after 4 epochs of no improvement of validation loss!')
+        else:
+            print('No early stopping!')
+    else:
+        early_stopping_callback = None
+
     history = model.fit(
         train_dataset,
         epochs=epochs,
         validation_data=val_dataset,
-        callbacks=[checkpoint_callback]
+        callbacks=[checkpoint_callback, early_stopping_callback]
     )
     if plot:
         plot_history(history)
