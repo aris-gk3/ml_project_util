@@ -65,7 +65,7 @@ def train(model, epochs, lr, optimizer, name, parent_name=None, is_binary=None, 
         train_dataset,
         epochs=epochs,
         validation_data=val_dataset,
-        callbacks=[checkpoint_callback, early_stopping_callback]
+        callbacks=callbacks
     )
     if plot:
         plot_history(history)
