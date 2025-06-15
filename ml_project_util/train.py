@@ -36,6 +36,8 @@ def train(model, epochs, lr, optimizer, name, parent_name=None, is_binary=None, 
 
     checkpoint_path = f"{PATH_SAVEDMODELS}/{name[:3]}/{name}_{{epoch:03d}}_val{{val_loss:.4f}}.keras"
 
+    callbacks = []
+    
     if (save_models):
         checkpoint_callback = ModelCheckpoint(
             filepath=checkpoint_path,
@@ -49,18 +51,15 @@ def train(model, epochs, lr, optimizer, name, parent_name=None, is_binary=None, 
             print('Will save only best models every epoch!')
         else:
             print('Will save all models every epoch!')
-    else:
-        checkpoint_callback = None
+        callbacks.append(checkpoint_callback)
 
     if (early_stopping):
         early_stopping_callback = EarlyStopping(monitor='val_loss',
                                               patience=4)
-        if (save_best):
-            print('Will stop after 4 epochs of no improvement of validation loss!')
-        else:
-            print('No early stopping!')
+        print('Will stop after 4 epochs of no improvement of validation loss!')
+        callbacks.append(early_stopping_callback)
     else:
-        early_stopping_callback = None
+        print('No early stopping!')
 
     history = model.fit(
         train_dataset,
