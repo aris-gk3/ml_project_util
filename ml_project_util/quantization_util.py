@@ -842,7 +842,7 @@ def wt_range_search(model, model_name, mode='sv', filepath='0', force=0):
     return layer_ranges
 
 
-def activation_range_search(sampled_files, model, model_name, mode='sv', filepath='0', force=0, datatype='uint'):
+def activation_range_search(sampled_files, model, model_name, mode='sv', filepath='0', force=0):
     # s: save
     # v: verbose
     # sv: save & verbose
@@ -856,7 +856,7 @@ def activation_range_search(sampled_files, model, model_name, mode='sv', filepat
         dict = path_definition()
         BASE_PATH = dict['BASE_PATH']
         short_name = model_name[:-10]
-        tmp_filepath = f"{BASE_PATH}/Docs_Reports/Quant/Ranges/{short_name}_activation_sw_range.json"
+        tmp_filepath = f"{BASE_PATH}/Docs_Reports/Quant/Ranges/{short_name}_activation_range.json"
     else:
         tmp_filepath = filepath
     
@@ -891,12 +891,7 @@ def activation_range_search(sampled_files, model, model_name, mode='sv', filepat
                 layers_list.append(layer.name)
 
         in_min, in_max = input_range(mode=mode)
-        if (datatype=='uint'):
-            layer_min_max[layers_list[0]] = {"min": 0, "max": max(abs(in_min), in_max)}
-        elif (datatype=='int'):
-            layer_min_max[layers_list[0]] = {"min": -max(abs(in_min), in_max), "max": max(abs(in_min), in_max)}
-        else:
-            ValueError('datatype of activation_range_search() is wrong!')
+        layer_min_max[layers_list[0]] = {"min": -max(abs(in_min), in_max), "max": max(abs(in_min), in_max)}
 
         # Process input files
         for file_path in sampled_files:
@@ -906,13 +901,14 @@ def activation_range_search(sampled_files, model, model_name, mode='sv', filepat
                 x = layer(x)
 
                 if layer.name in layers_list:
-                    act_min = tf.reduce_min(x).numpy()
+                    # act_min = tf.reduce_min(x).numpy()
                     act_max = tf.reduce_max(x).numpy()
 
                     if layer.name not in layer_min_max:
-                        layer_min_max[layer.name] = {"min": act_min, "max": act_max}
+                        # layer_min_max[layer.name] = {"min": act_min, "max": act_max}
+                        layer_min_max[layer.name] = {"min": 0, "max": act_max}
                     else:
-                        layer_min_max[layer.name]['min'] = min(layer_min_max[layer.name]['min'], act_min)
+                        # layer_min_max[layer.name]['min'] = min(layer_min_max[layer.name]['min'], act_min)
                         layer_min_max[layer.name]['max'] = max(layer_min_max[layer.name]['max'], act_max)
         
         range_serializable = {
@@ -1617,7 +1613,7 @@ def quant_bw_search(model, model_name, range):
     plt.plot(sorted_keys, hww_accuracy, marker='x', label='HWW Accuracy', color='orange')
 
     plt.title("Accuracy Comparison")
-    plt.xlabel("Block")
+    plt.xlabel("Bit-width")
     plt.ylabel("Accuracy")
     plt.legend()
     plt.grid(True)
@@ -1631,8 +1627,8 @@ def quant_bw_search(model, model_name, range):
     plt.plot(sorted_keys, hww_loss, marker='x', label='HWW Loss', color='orange')
 
     plt.title("Loss Comparison")
-    plt.xlabel("Block")
-    plt.ylabel("Accuracy")
+    plt.xlabel("Bit-width")
+    plt.ylabel("Loss")
     plt.legend()
     plt.grid(True)
     plt.tight_layout()
