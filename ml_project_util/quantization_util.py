@@ -669,7 +669,52 @@ def wt_histogram_ranges(model, model_name, mode='sv', filepath='0', force=0):
 
 ### Quantization utilities
 
-def input_range(mode='v', num_samples=300, filepath='0',force=0):
+def smallest_power_of_two_to_exceed(range, next_value):
+    if range <= 0 or next_value <= 0:
+        raise ValueError("Values must be greater than 0")
+    
+    options = []
+
+    print(f'We have range: {range} & next value {next_value}')
+
+    if next_value < range:
+        ratio = range / next_value
+        exponent = math.ceil(math.log2(ratio))
+        factor = 2 ** (exponent-1)
+        result = range / factor
+        print(f'Result 1: {result}')
+        if result>next_value:
+            options.append(result)
+    elif next_value > range:
+        ratio = next_value / range
+        exponent = math.ceil(math.log2(ratio))
+        factor = 2 ** exponent
+        result = range * factor
+        print(f'Result 2: {result}')
+        if result>next_value:
+            options.append(result)
+    
+    if not options:
+        print(f'Choose same ramge')
+        return range
+
+    return min(options)
+
+
+def compute_symmetric_int8_wt_scales(range_dict):
+    # Helper function for wt_scale_search
+    scale_dict = {}
+    for layer_name, layer_data in range_dict.items():
+        if "weight" in layer_data:
+            w_min = layer_data["weight"]["min"]
+            w_max = layer_data["weight"]["max"]
+            max_abs = max(abs(w_min), abs(w_max))
+            scale = max_abs / 127 # scale = r/q
+            scale_dict[layer_name] = scale
+    return scale_dict
+
+
+def input_range_search(mode='v', num_samples=300, filepath='0',force=0):
     # v: prints input range
     # force: 0 -> if file exists read from path & return, if it doesn't exist calculate & write, return
     #        1 -> calculate &  return, if file exists, ask if you want to overwrite
@@ -958,75 +1003,33 @@ def activation_range_search(sampled_files, model, model_name, mode='sv', filepat
     return range_serializable
 
 
-def smallest_power_of_two_to_exceed(range, next_value):
-    if range <= 0 or next_value <= 0:
-        raise ValueError("Values must be greater than 0")
-    
-    options = []
-
-    print(f'We have range: {range} & next value {next_value}')
-
-    if next_value < range:
-        ratio = range / next_value
-        exponent = math.ceil(math.log2(ratio))
-        factor = 2 ** (exponent-1)
-        result = range / factor
-        print(f'Result 1: {result}')
-        if result>next_value:
-            options.append(result)
-    elif next_value > range:
-        ratio = next_value / range
-        exponent = math.ceil(math.log2(ratio))
-        factor = 2 ** exponent
-        result = range * factor
-        print(f'Result 2: {result}')
-        if result>next_value:
-            options.append(result)
-    
-    if not options:
-        print(f'Choose same ramge')
-        return range
-
-    return min(options)
-
-
-def compute_symmetric_int8_wt_scales(range_dict):
-    # Helper function for wt_scale_search
-    scale_dict = {}
-    for layer_name, layer_data in range_dict.items():
-        if "weight" in layer_data:
-            w_min = layer_data["weight"]["min"]
-            w_max = layer_data["weight"]["max"]
-            max_abs = max(abs(w_min), abs(w_max))
-            scale = max_abs / 127 # scale = r/q
-            scale_dict[layer_name] = scale
-    return scale_dict
-
-
-def wt_scale_search(wt_range_dict, model_name, filepath='0', force=0, mode='sv'):
+def wt_hw_range_search(model_name, debug=0, force=0, filepath='0', mode='sv'):
     # s: save
     # v: verbose
     # sv: save & verbose
     # force: 0 -> if file exists read from path & return, if it doesn't exist calculate & write, return
     #        1 -> calculate &  return, if file exists, ask if you want to overwrite
+    # debug: prints layer by layer calculations
 
+    # Find correct path
     if(filepath == '0'):
         dict = path_definition()
         BASE_PATH = dict['BASE_PATH']
         short_name = model_name[:-10]
-        tmp_filepath = f"{BASE_PATH}/Docs_Reports/Quant/Ranges/{short_name}_wt_scale.json"
+        tmp_filepath = f"{BASE_PATH}/Docs_Reports/Quant/Ranges/{short_name}_wt_hw_range.json"
     else:
         tmp_filepath = filepath
-    
+
+    # Flag inputs handling
     ask_message = 0
     if(force==0):
         if os.path.exists(tmp_filepath):
             try:
                 with open(tmp_filepath, 'r') as f:
-                    wt_scale_dict = json.load(f)
-                print(f'Read weight scale json from {tmp_filepath}')
+                    complete_dict = json.load(f)
+                print(f'Read wt hw ranges from {tmp_filepath}')
             except:
-                print('Wrong format for reading wt scale from json!!')
+                print('Wrong format for reading wt hw ranges json!!')
             calculate = 0
             # revoke save mode
             if(mode == 's'):
@@ -1039,12 +1042,89 @@ def wt_scale_search(wt_range_dict, model_name, filepath='0', force=0, mode='sv')
         calculate = 1
         if os.path.exists(tmp_filepath):
             ask_message = 1
-    if(calculate == 1):
-        wt_scale_dict = compute_symmetric_int8_wt_scales(wt_range_dict)
 
+    wt_hw_range_dict = {}
     if mode=='v' or mode=='sv':
-        for layer, scale in wt_scale_dict.items():
-            print(f"{layer}: scale = {scale:.8f}")
+        verbose = 1
+    else:
+        verbose = 0
+
+    if(calculate == 1):
+        layer_list = list(activation_sw_rangea_dict.keys())
+        if(verbose==1):
+            print(layer_list)
+            print('\n')
+
+        # scale = activation_sw_scale_dict[layer_list[0]]
+        if (precision=='uint'):
+            scale = activation_sw_range_dict[layer_list[0]]['max'] / (2**(num_bits)-1)
+        elif (precision=='int'):
+            scale = activation_sw_range_dict[layer_list[0]]['max'] / (2**(num_bits-1)-1)
+        else:
+            ValueError('Wrong precision has been given to activation_hw_search()')
+
+        # Initialize dictionaries
+        activation_hw_scale_dict = {}
+        activation_hw_scale_dict[layer_list[0]] = scale
+        activation_hw_range_dict = {}
+        activation_hw_range_dict[layer_list[0]] = {'min': activation_sw_range_dict[layer_list[0]]['min'],
+                                                'max': activation_sw_range_dict[layer_list[0]]['max']}
+        activation_shift_dict = {}
+        activation_shift_dict[layer_list[0]] = 0
+
+        for i in range(1, len(layer_list)):
+            if(verbose==1 or debug==1):
+                print(f'For layer {i}.')
+            scale_prev = scale
+            scale_accumulator = scale_prev * wt_scale_dict[layer_list[i]]
+            quant_max = activation_sw_range_dict[layer_list[i]]['max'] / scale_accumulator # q = r/scale
+            if (precision=='int'):
+                quant_max = 2*quant_max
+
+            quant_exp = math.ceil(math.log2(quant_max))
+            quant_poweroftwo = 2 ** quant_exp
+            shift = quant_exp - num_bits
+            scale = scale_accumulator*(2**shift)
+            if (precision=='uint'):
+                hw_max = ((2**(num_bits)-1)) * scale  # r = q*scale
+            elif (precision=='int'):
+                hw_max = ((2**(num_bits-1)-1)) * scale  # r = q*scale
+            else:
+                ValueError('Wrong precision input!')
+
+            if(verbose==1):
+                print(f'Scale accumulator: {scale_accumulator}')
+                print(f'Scale: {scale}')
+                print(f"Previous layer activation: {activation_sw_range_dict[layer_list[i-1]]['max']}")
+                print(f"Activation: {activation_sw_range_dict[layer_list[i]]['max']}")
+            if(debug==1):
+                print(f'Quant_max: {quant_max}')
+                print(f'Quant_exp: {quant_exp}, for both signs.')
+                print(f'Quant_poweroftwo: {quant_poweroftwo}, for both signs.')
+                print(f'Layer {i}: scale ratio:{(2**shift)}')
+            if(verbose==1):
+                print(f'Hw_max: {hw_max}')
+                print(f'Shift result by {shift}')
+            if(verbose==1 or debug==1):
+                print('\n')
+            
+            activation_hw_scale_dict[layer_list[i]] = scale
+            activation_hw_range_dict[layer_list[i]] = {'min': 0, 'max': hw_max}
+            activation_shift_dict[layer_list[i]] = shift
+
+        complete_dict = {
+            'activation_hw_scale': activation_hw_scale_dict,
+            'activation_sw_scale': activation_sw_scale_dict,
+            'wt_scale': wt_scale_dict,
+            'activation_hw_range_dict': activation_hw_range_dict,
+            'activation_sw_range_dict': activation_sw_range_dict,
+            'wt_range': wt_range_dict,
+            'shift': activation_shift_dict
+        }
+
+
+    if (mode=='v' or mode=='sv') and calculate==0:
+        print(json.dumps(wt_hw_range_dict, indent=4))
 
     # Shows message for the user to choose if they want to overwrite
     if(ask_message==1 and (mode == 's' or mode == 'sv')):
@@ -1065,97 +1145,17 @@ def wt_scale_search(wt_range_dict, model_name, filepath='0', force=0, mode='sv')
         parent_folder = os.path.dirname(tmp_filepath)
         os.makedirs(parent_folder, exist_ok=True)
         with open(tmp_filepath, "w") as f:
-            json.dump(wt_scale_dict, f, indent=4)
-        print(f"Saved json in: {tmp_filepath}")
+            json.dump(wt_hw_range_dict, f, indent=4)
+        print(f"Saved wt hw range json in: {tmp_filepath}")
 
-    return wt_scale_dict
+    return wt_hw_range_dict
 
-
-def compute_activation_scales(range_dict, num_bits=8, precision='uint'):
-    # q = r/scale
-    scale_dict = {}
-    for layer_name, layer_data in range_dict.items():
-        w_min = layer_data["min"]
-        w_max = layer_data["max"]
-        max_abs = max(abs(w_min), abs(w_max))
-        if (precision=='uint'):
-            scale = max_abs / (2**(num_bits)-1) # scale = r/q
-        elif (precision=='int'):
-            scale = max_abs / (2**(num_bits-1)-1) # scale = r/q
-        else:
-            ValueError('Wrong precision input!')
-        scale_dict[layer_name] = scale
-    return scale_dict
+    # This function is not implemented in the original code.
+    # It seems to be a placeholder for future implementation.
+    raise NotImplementedError("wt_hw_range function is not implemented yet.")
 
 
-def activation_sw_scale_search(activation_sw_range_dict, model_name, filepath='0', force=0, mode='sv', num_bits=8, precision='uint'):
-    # s: save
-    # v: verbose
-    # sv: save & verbose
-    # force: 0 -> if file exists read from path & return, if it doesn't exist calculate & write, return
-    #        1 -> calculate &  return, if file exists, ask if you want to overwrite
-    if(filepath == '0'):
-        dict = path_definition()
-        BASE_PATH = dict['BASE_PATH']
-        short_name = model_name[:-10]
-        tmp_filepath = f"{BASE_PATH}/Docs_Reports/Quant/Ranges/{short_name}_activation_sw_scale_{precision}.json"
-    else:
-        tmp_filepath = filepath
-
-    ask_message = 0
-    if(force==0):
-        if os.path.exists(tmp_filepath):
-            try:
-                with open(tmp_filepath, 'r') as f:
-                    activation_sw_scale_dict = json.load(f)
-                print(f'Read activation sw scale json from {tmp_filepath}')
-            except:
-                print('Wrong format for reading activation sw scale from json!!')
-            calculate = 0
-            # revoke save mode
-            if(mode == 's'):
-                mode = ''
-            if(mode == 'sv'):
-                mode = 'v'
-        else:
-            calculate = 1
-    else:
-        calculate = 1
-        if os.path.exists(tmp_filepath):
-            ask_message = 1
-    if(calculate == 1):
-        activation_sw_scale_dict = compute_activation_scales(activation_sw_range_dict, num_bits=num_bits, precision=precision)
-
-    if mode=='v' or mode=='sv':
-        for layer, scale in activation_sw_scale_dict.items():
-            print(f"{layer}: scale = {scale:.8f}")
-
-    # Shows message for the user to choose if they want to overwrite
-    if(ask_message==1 and (mode == 's' or mode == 'sv')):
-        while True:
-            response = input("Do you want to overwrite previous data? (y/n): ").strip().lower()
-            if response == 'y':
-                break
-            elif response == 'n':
-                if(mode == 's'):
-                    mode = ''
-                if(mode == 'sv'):
-                    mode = 'v'
-                break
-            else:
-                print("Invalid input.")
-
-    if mode=='s' or mode=='sv':
-        parent_folder = os.path.dirname(tmp_filepath)
-        os.makedirs(parent_folder, exist_ok=True)        
-        with open(tmp_filepath, "w") as f:
-            json.dump(activation_sw_scale_dict, f, indent=4)
-        print(f"Saved json in: {tmp_filepath}")
-
-    return activation_sw_scale_dict
-
-
-def activation_hw_search(model_name, activation_sw_range_dict, activation_sw_scale_dict, wt_range_dict, wt_scale_dict, debug=0, force=0, filepath='0', mode='sv', num_bits=8, precision='uint'):
+def activation_hw_range_search(model_name, activation_sw_range_dict, activation_sw_scale_dict, wt_range_dict, wt_scale_dict, debug=0, force=0, filepath='0', mode='sv', num_bits=8, precision='uint'):
     # s: save
     # v: verbose
     # sv: save & verbose
@@ -1331,6 +1331,158 @@ def complete_dict_search(model, model_name, force=0, debug=0, mode='sv', filepat
     complete_dict = activation_hw_search(model_name, activation_sw_range_dict, activation_sw_scale_dict, wt_range_dict, wt_scale_dict, debug=debug, force=force, mode=mode, filepath=filepath)
 
     return complete_dict
+
+
+def compute_activation_scales(range_dict, num_bits=8, precision='uint'):
+    # q = r/scale
+    scale_dict = {}
+    for layer_name, layer_data in range_dict.items():
+        w_min = layer_data["min"]
+        w_max = layer_data["max"]
+        max_abs = max(abs(w_min), abs(w_max))
+        if (precision=='uint'):
+            scale = max_abs / (2**(num_bits)-1) # scale = r/q
+        elif (precision=='int'):
+            scale = max_abs / (2**(num_bits-1)-1) # scale = r/q
+        else:
+            ValueError('Wrong precision input!')
+        scale_dict[layer_name] = scale
+    return scale_dict
+
+
+def wt_scale_search(wt_range_dict, model_name, filepath='0', force=0, mode='sv'):
+    # s: save
+    # v: verbose
+    # sv: save & verbose
+    # force: 0 -> if file exists read from path & return, if it doesn't exist calculate & write, return
+    #        1 -> calculate &  return, if file exists, ask if you want to overwrite
+
+    if(filepath == '0'):
+        dict = path_definition()
+        BASE_PATH = dict['BASE_PATH']
+        short_name = model_name[:-10]
+        tmp_filepath = f"{BASE_PATH}/Docs_Reports/Quant/Ranges/{short_name}_wt_scale.json"
+    else:
+        tmp_filepath = filepath
+    
+    ask_message = 0
+    if(force==0):
+        if os.path.exists(tmp_filepath):
+            try:
+                with open(tmp_filepath, 'r') as f:
+                    wt_scale_dict = json.load(f)
+                print(f'Read weight scale json from {tmp_filepath}')
+            except:
+                print('Wrong format for reading wt scale from json!!')
+            calculate = 0
+            # revoke save mode
+            if(mode == 's'):
+                mode = ''
+            if(mode == 'sv'):
+                mode = 'v'
+        else:
+            calculate = 1
+    else:
+        calculate = 1
+        if os.path.exists(tmp_filepath):
+            ask_message = 1
+    if(calculate == 1):
+        wt_scale_dict = compute_symmetric_int8_wt_scales(wt_range_dict)
+
+    if mode=='v' or mode=='sv':
+        for layer, scale in wt_scale_dict.items():
+            print(f"{layer}: scale = {scale:.8f}")
+
+    # Shows message for the user to choose if they want to overwrite
+    if(ask_message==1 and (mode == 's' or mode == 'sv')):
+        while True:
+            response = input("Do you want to overwrite previous data? (y/n): ").strip().lower()
+            if response == 'y':
+                break
+            elif response == 'n':
+                if(mode == 's'):
+                    mode = ''
+                if(mode == 'sv'):
+                    mode = 'v'
+                break
+            else:
+                print("Invalid input.")
+
+    if mode=='s' or mode=='sv':
+        parent_folder = os.path.dirname(tmp_filepath)
+        os.makedirs(parent_folder, exist_ok=True)
+        with open(tmp_filepath, "w") as f:
+            json.dump(wt_scale_dict, f, indent=4)
+        print(f"Saved json in: {tmp_filepath}")
+
+    return wt_scale_dict
+
+
+def activation_sw_scale_search(activation_sw_range_dict, model_name, filepath='0', force=0, mode='sv', num_bits=8, precision='uint'):
+    # s: save
+    # v: verbose
+    # sv: save & verbose
+    # force: 0 -> if file exists read from path & return, if it doesn't exist calculate & write, return
+    #        1 -> calculate &  return, if file exists, ask if you want to overwrite
+    if(filepath == '0'):
+        dict = path_definition()
+        BASE_PATH = dict['BASE_PATH']
+        short_name = model_name[:-10]
+        tmp_filepath = f"{BASE_PATH}/Docs_Reports/Quant/Ranges/{short_name}_activation_sw_scale_{precision}.json"
+    else:
+        tmp_filepath = filepath
+
+    ask_message = 0
+    if(force==0):
+        if os.path.exists(tmp_filepath):
+            try:
+                with open(tmp_filepath, 'r') as f:
+                    activation_sw_scale_dict = json.load(f)
+                print(f'Read activation sw scale json from {tmp_filepath}')
+            except:
+                print('Wrong format for reading activation sw scale from json!!')
+            calculate = 0
+            # revoke save mode
+            if(mode == 's'):
+                mode = ''
+            if(mode == 'sv'):
+                mode = 'v'
+        else:
+            calculate = 1
+    else:
+        calculate = 1
+        if os.path.exists(tmp_filepath):
+            ask_message = 1
+    if(calculate == 1):
+        activation_sw_scale_dict = compute_activation_scales(activation_sw_range_dict, num_bits=num_bits, precision=precision)
+
+    if mode=='v' or mode=='sv':
+        for layer, scale in activation_sw_scale_dict.items():
+            print(f"{layer}: scale = {scale:.8f}")
+
+    # Shows message for the user to choose if they want to overwrite
+    if(ask_message==1 and (mode == 's' or mode == 'sv')):
+        while True:
+            response = input("Do you want to overwrite previous data? (y/n): ").strip().lower()
+            if response == 'y':
+                break
+            elif response == 'n':
+                if(mode == 's'):
+                    mode = ''
+                if(mode == 'sv'):
+                    mode = 'v'
+                break
+            else:
+                print("Invalid input.")
+
+    if mode=='s' or mode=='sv':
+        parent_folder = os.path.dirname(tmp_filepath)
+        os.makedirs(parent_folder, exist_ok=True)        
+        with open(tmp_filepath, "w") as f:
+            json.dump(activation_sw_scale_dict, f, indent=4)
+        print(f"Saved json in: {tmp_filepath}")
+
+    return activation_sw_scale_dict
 
 
 def gen_sample_paths(path_dataset='0', num_samples=40):
