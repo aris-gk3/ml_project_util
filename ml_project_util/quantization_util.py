@@ -1240,7 +1240,7 @@ def activation_hw_range_search(model_name, activation_range_dict, wt_range_dict,
             
             N = num_bits + k
 
-            bw_range_dict[layer_list[i]] = {"min": float(-activation_range), "max": float(activation_range)}
+            bw_range_dict[layer_list[i]] = {"min": 0, "max": float(activation_range)}
 
             if(debug==1):
                 print(f'tmp: {tmp}')
