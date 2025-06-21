@@ -1230,7 +1230,7 @@ def activation_hw_range_search(model_name, activation_range_dict, wt_range_dict,
 
         bw_range_dict = {}
         in_min, in_max = input_range_search(mode='')
-        bw_range_dict[layer_list[i]] = {"min": -max(abs(in_min), in_max), "max": max(abs(in_min), in_max)}
+        bw_range_dict[layer_list[0]] = {"min": -max(abs(in_min), in_max), "max": max(abs(in_min), in_max)}
 
         for i in range(1, len(layer_list)):
             if(verbose==1 or debug==1):
