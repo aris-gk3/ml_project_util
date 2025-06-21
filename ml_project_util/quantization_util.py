@@ -1047,7 +1047,7 @@ def activation_range_search(sampled_files, model, model_name, mode='sv', filepat
             dict = path_definition()
             BASE_PATH = dict['BASE_PATH']
             short_name = model_name[:-10]
-            filepath = f"{BASE_PATH}/Docs_Reports/Quant/Ranges/{short_name}_activation_sw_range.json"        
+            filepath = f"{BASE_PATH}/Docs_Reports/Quant/Ranges/{short_name}_activation_range.json"        
         # Save json if it doesn't exist or force
         if not os.path.exists(filepath) or force==1:
             parent_folder = os.path.dirname(filepath)
@@ -1156,7 +1156,7 @@ def wt_hw_range_search(model_name, activation_range_dict, wt_range_dict, filepat
 
             N = num_bits + k
 
-            bw_range_dict = {layer_list[i]: {"min": float(-wt_range), "max": float(wt_range)}}
+            bw_range_dict[layer_list[i]] = {"min": float(-wt_range), "max": float(wt_range)}
 
             if(debug==1):
                 print(f'tmp: {tmp}')
