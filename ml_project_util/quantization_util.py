@@ -683,6 +683,17 @@ def find_smallest_power_of_two(a, b):
     return k, a * 2**k
 
 
+def find_biggest_power_of_two(a, b):
+    if a < b:
+        raise ValueError("a must be bigger than b")
+    
+    k = 0
+    while a / (2 ** (k + 1)) > b:
+        k += 1
+    result = a / (2 ** k)
+    return k, result
+
+
 def smallest_power_of_two_to_exceed(range, next_value):
     if range <= 0 or next_value <= 0:
         raise ValueError("Values must be greater than 0")
@@ -1116,7 +1127,11 @@ def wt_hw_range_search(model_name, activation_range_dict, wt_range_dict, filepat
         
             tmp = activation_range_dict[layer_list[i]]['max'] * (2**(num_bits-1)-1)/activation_range_dict[layer_list[i-1]]['max']
 
-            k, wt_range = find_smallest_power_of_two(tmp, wt_range_dict[layer_list[i]]['weight']['max'])
+            # find biggest positive integer k, so that tmp * 2**k is bigger than the max weight range
+            k, wt_range = find_biggest_power_of_two(tmp, wt_range_dict[layer_list[i]]['weight']['max'])
+
+            # # Wrong
+            # k, wt_range = find_smallest_power_of_two(tmp, wt_range_dict[layer_list[i]]['weight']['max'])
 
             N = num_bits + k
 
