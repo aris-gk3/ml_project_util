@@ -1108,6 +1108,7 @@ def wt_hw_range_search(model_name, activation_range_dict, wt_range_dict, filepat
 
         wt_hw_range_dict = {}
         wt_hw_range_dict = {f"{num_bits}b": {}}
+        wt_hw_range_dict = {f"{num_bits}b": {"weight": {}, "bias": {}}}
 
         for i in range(1, len(layer_list)):
             if(verbose==1 or debug==1):
@@ -1115,7 +1116,7 @@ def wt_hw_range_search(model_name, activation_range_dict, wt_range_dict, filepat
         
             tmp = activation_range_dict[layer_list[i]]['max'] * (2**(num_bits-1)-1)/activation_range_dict[layer_list[i-1]]['max']
 
-            k, wt_range = find_smallest_power_of_two(tmp, wt_range_dict[layer_list[i]]['max'])
+            k, wt_range = find_smallest_power_of_two(tmp, wt_range_dict[layer_list[i]]['weight']['max'])
 
             N = num_bits + k
 
@@ -1125,7 +1126,7 @@ def wt_hw_range_search(model_name, activation_range_dict, wt_range_dict, filepat
                 print(f'Input: {activation_range_dict[layer_list[i-1]]}')
                 print(f'Next input: {activation_range_dict[layer_list[i]]}')
             if(verbose==1):
-                print(f"Weight range: {wt_range_dict[layer_list[i]]}")
+                print(f"Weight range: {wt_range_dict[layer_list[i]]['weight']['max']}")
                 print(f"HW weight range: {wt_range}")
             if(debug==1):
                 print(f'Accumulator bitwidth {N}')
