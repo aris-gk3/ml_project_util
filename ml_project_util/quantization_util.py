@@ -1061,7 +1061,7 @@ def activation_range_search(sampled_files, model, model_name, mode='sv', filepat
     return range_serializable
 
 
-def wt_hw_range_search(model_name, activation_range_dict, wt_range_dict, filepath='0', force=0,  mode='sv', debug=0, num_bits=8, precision='uint'):
+def wt_hw_range_search(model_name, activation_range_dict, wt_range_dict, filepath='0', force=0,  mode='sv', debug=0, num_bits=8):
     # s: save
     # v: verbose
     # sv: save & verbose
@@ -1090,10 +1090,10 @@ def wt_hw_range_search(model_name, activation_range_dict, wt_range_dict, filepat
                     else:
                         calculate = 0
                 else:
-                    print("'8b' is missing or empty from dictionary.")
+                    print(f"'{num_bits}b' is missing or empty from dictionary.")
                     calculate = 1
         except:
-            print('Wrong format for reading complete dictionarys json!!')
+            print('Wrong format for reading wt_hw_range json!!')
             calculate = 1
             wt_hw_range_dict = {}
     else:
@@ -1104,32 +1104,6 @@ def wt_hw_range_search(model_name, activation_range_dict, wt_range_dict, filepat
         ask_message = 1
     else:
         ask_message = 0
-
-    # if(force==0):
-    #     if os.path.exists(tmp_filepath):
-    #         try:
-    #             with open(tmp_filepath, 'r') as f:
-    #                 wt_hw_range_dict = json.load(f)
-    #                 if f"{num_bits}b" in wt_hw_range_dict and wt_hw_range_dict[f"{num_bits}b"]:
-    #                     print(f'Read wt_hw_range json dictionary from {tmp_filepath} and it has values for {num_bits} bits.')
-    #                     calculate = 0
-    #                     # revoke save mode
-    #                     if(mode == 's'):
-    #                         mode = ''
-    #                     if(mode == 'sv'):
-    #                         mode = 'v'
-    #                 else:
-    #                     print("'8b' is missing or empty from dictionary.")
-    #                     calculate = 1
-    #         except:
-    #             print('Wrong format for reading complete dictionarys json!!')
-    #             calculate = 1
-    #     else:
-    #         calculate = 1
-    # else:
-    #     calculate = 1
-    #     if os.path.exists(tmp_filepath):
-    #         ask_message = 1
 
     if mode=='v' or mode=='sv':
         verbose = 1
@@ -1152,9 +1126,6 @@ def wt_hw_range_search(model_name, activation_range_dict, wt_range_dict, filepat
 
             # find biggest positive integer k, so that tmp * 2**k is bigger than the max weight range
             k, wt_range = find_biggest_power_of_two(tmp, wt_range_dict[layer_list[i]]['weight']['max'])
-
-            # # Wrong
-            # k, wt_range = find_smallest_power_of_two(tmp, wt_range_dict[layer_list[i]]['weight']['max'])
 
             N = num_bits + k
 
@@ -1202,7 +1173,121 @@ def wt_hw_range_search(model_name, activation_range_dict, wt_range_dict, filepat
     return bw_range_dict
 
 
-def activation_hw_range_search(model_name, activation_sw_range_dict, activation_sw_scale_dict, wt_range_dict, wt_scale_dict, debug=0, force=0, filepath='0', mode='sv', num_bits=8, precision='uint'):
+def activation_hw_range_search(model_name, activation_range_dict, wt_range_dict, filepath='0', force=0, mode='sv', debug=0, num_bits=8):
+    # s: save
+    # v: verbose
+    # sv: save & verbose
+    # force: 0 -> if file exists read from path & return, if it doesn't exist calculate & write, return
+    #        1 -> calculate &  return, if file exists, ask if you want to overwrite
+    # debug: prints layer by layer calculations
+
+    # Find correct path
+    if(filepath == '0'):
+        dict = path_definition()
+        BASE_PATH = dict['BASE_PATH']
+        short_name = model_name[:-10]
+        tmp_filepath = f"{BASE_PATH}/Docs_Reports/Quant/Ranges/{short_name}_activation_hw_range.json"
+    else:
+        tmp_filepath = filepath
+    
+    # Flag inputs handling
+    if os.path.exists(tmp_filepath):
+        try:
+            with open(tmp_filepath, 'r') as f:
+                activation_hw_range_dict = json.load(f)
+                if f"{num_bits}b" in activation_hw_range_dict and activation_hw_range_dict[f"{num_bits}b"]:
+                    print(f'Read activation_hw_range json dictionary from {tmp_filepath} and it has values for {num_bits} bits.')
+                    if force==1:
+                        calculate = 1
+                    else:
+                        calculate = 0
+                else:
+                    print(f"'{num_bits}b' is missing or empty from dictionary.")
+                    calculate = 1
+        except:
+            print('Wrong format for reading complete dictionarys json!!')
+            calculate = 1
+            activation_hw_range_dict = {}
+    else:
+        calculate = 1
+        activation_hw_range_dict = {}
+
+    if(calculate==1 and force==1):
+        ask_message = 1
+    else:
+        ask_message = 0
+
+    if mode=='v' or mode=='sv':
+        verbose = 1
+    else:
+        verbose = 0
+
+    if(calculate == 1):
+        layer_list = list(activation_range_dict.keys())
+        if(verbose==1):
+            print(layer_list)
+            print('\n')
+
+        bw_range_dict = {}
+
+        for i in range(1, len(layer_list)):
+            if(verbose==1 or debug==1):
+                print(f'For layer {i}.')
+
+            tmp = activation_range_dict[layer_list[i-1]]['max'] * wt_range_dict[layer_list[i]]['max'] / (2**(num_bits-1)-1)
+            
+            k, activation_range = find_smallest_power_of_two(tmp, activation_range_dict[layer_list[i]]['max'])
+            
+            N = num_bits + k
+
+            bw_range_dict[layer_list[i]] = {"min": float(-activation_range), "max": float(activation_range)}
+
+            if(debug==1):
+                print(f'tmp: {tmp}')
+                print(f'Input: {activation_range_dict[layer_list[i-1]]}')
+                print(f"Weight range: {wt_range_dict[layer_list[i]]['weight']['max']}")
+            if(verbose==1):
+                print(f'Next input range: {activation_range_dict[layer_list[i]]}')
+                print(f"HW next input range: {activation_range}")
+            if(debug==1):
+                print(f'Accumulator bitwidth {N}')
+                print(f'Precision bitwidth {num_bits}')
+                print(f'Shift right by {k}')
+            if(verbose==1 or debug==1):
+                print('\n')
+
+            # Update or add the subdictionary for give bit-width
+            activation_hw_range_dict[f"{num_bits}b"] = bw_range_dict
+
+    if (mode=='v' or mode=='sv') and calculate==0:
+        print(json.dumps(activation_hw_range_dict, indent=4))
+
+    # Shows message for the user to choose if they want to overwrite
+    if(ask_message==1 and (mode == 's' or mode == 'sv')):
+        while True:
+            response = input("Do you want to overwrite previous data? (y/n): ").strip().lower()
+            if response == 'y':
+                break
+            elif response == 'n':
+                if(mode == 's'):
+                    mode = ''
+                if(mode == 'sv'):
+                    mode = 'v'
+                break
+            else:
+                print("Invalid input.")
+
+    if mode=='s' or mode=='sv':
+        parent_folder = os.path.dirname(tmp_filepath)
+        os.makedirs(parent_folder, exist_ok=True)
+        with open(tmp_filepath, "w") as f:
+            json.dump(activation_hw_range_dict, f, indent=4)
+        print(f"Saved activation_hw_range_dict json in: {tmp_filepath}")
+
+    return activation_hw_range_dict
+
+
+def activation_hw_range_search_old(model_name, activation_sw_range_dict, activation_sw_scale_dict, wt_range_dict, wt_scale_dict, debug=0, force=0, filepath='0', mode='sv', num_bits=8, precision='uint'):
     # s: save
     # v: verbose
     # sv: save & verbose
