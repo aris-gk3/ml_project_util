@@ -674,7 +674,7 @@ def find_smallest_power_of_two(a, b):
     Finds the smallest positive integer k such that a * 2**k > b.
     Returns (k, a * 2**k).
     """
-    if a < b:
+    if a > b:
         raise ValueError("a must be smaller than b")
 
     k = 1
@@ -1123,6 +1123,7 @@ def wt_hw_range_search(model_name, activation_range_dict, wt_range_dict, filepat
             wt_hw_range_dict[f"{num_bits}b"] = {layer_list[i]: {"min": float(-wt_range), "max": float(wt_range)}}
 
             if(debug==1):
+                print(f'tmp: {tmp}')
                 print(f'Input: {activation_range_dict[layer_list[i-1]]}')
                 print(f'Next input: {activation_range_dict[layer_list[i]]}')
             if(verbose==1):
