@@ -1115,7 +1115,7 @@ def wt_hw_range_search(model_name, activation_range_dict, wt_range_dict, filepat
         
             tmp = activation_range_dict[layer_list[i]]['max'] * (2**(num_bits-1)-1)/activation_range_dict[layer_list[i-1]]['max']
 
-            k, wt_range = find_smallest_power_of_two(tmp, wt_range_dict[layer_list[i]])
+            k, wt_range = find_smallest_power_of_two(tmp, wt_range_dict[layer_list[i]]['max'])
 
             N = num_bits + k
 
