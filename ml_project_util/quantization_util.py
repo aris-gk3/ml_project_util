@@ -1079,6 +1079,7 @@ def wt_hw_range_search(model_name, activation_range_dict, wt_range_dict, filepat
         tmp_filepath = filepath
 
     # Flag inputs handling
+    ask_message = 0
     if os.path.exists(tmp_filepath):
         try:
             with open(tmp_filepath, 'r') as f:
@@ -1087,6 +1088,7 @@ def wt_hw_range_search(model_name, activation_range_dict, wt_range_dict, filepat
                     print(f'Read wt_hw_range json dictionary from {tmp_filepath} and it has values for {num_bits} bits.')
                     if force==1:
                         calculate = 1
+                        ask_message = 1
                     else:
                         calculate = 0
                 else:
@@ -1191,6 +1193,7 @@ def activation_hw_range_search(model_name, activation_range_dict, wt_range_dict,
         tmp_filepath = filepath
     
     # Flag inputs handling
+    ask_message = 0
     if os.path.exists(tmp_filepath):
         try:
             with open(tmp_filepath, 'r') as f:
@@ -1199,6 +1202,7 @@ def activation_hw_range_search(model_name, activation_range_dict, wt_range_dict,
                     print(f'Read activation_hw_range json dictionary from {tmp_filepath} and it has values for {num_bits} bits.')
                     if force==1:
                         calculate = 1
+                        ask_message = 1
                     else:
                         calculate = 0
                 else:
@@ -1211,11 +1215,6 @@ def activation_hw_range_search(model_name, activation_range_dict, wt_range_dict,
     else:
         calculate = 1
         activation_hw_range_dict = {}
-
-    if(calculate==1 and force==1):
-        ask_message = 1
-    else:
-        ask_message = 0
 
     if mode=='v' or mode=='sv':
         verbose = 1
