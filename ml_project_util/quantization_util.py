@@ -1172,14 +1172,33 @@ def wt_hw_range_search(model_name, activation_range_dict, wt_range_dict, filepat
             if(verbose==1 or debug==1):
                 print('\n')
 
+    # Shows message for the user to choose if they want to overwrite
+    if(ask_message==1 and (mode == 's' or mode == 'sv')):
+        while True:
+            response = input("Do you want to overwrite previous data? (y/n): ").strip().lower()
+            if response == 'y':
+                break
+            elif response == 'n':
+                if(mode == 's'):
+                    mode = ''
+                if(mode == 'sv'):
+                    mode = 'v'
+                break
+            else:
+                print("Invalid input.")
+
 
     # Update or add the subdictionary for give bit-width
     wt_hw_range_dict[f"{num_bits}b"] = bw_range_dict
 
-    # Save the updated dictionary back to the JSON file
-    with open(tmp_filepath, 'w') as f:
-        json.dump(wt_hw_range_dict, f, indent=4)
-    return wt_hw_range_dict
+    if mode=='s' or mode=='sv':
+        parent_folder = os.path.dirname(tmp_filepath)
+        os.makedirs(parent_folder, exist_ok=True)
+        with open(tmp_filepath, "w") as f:
+            json.dump(wt_hw_range_dict, f, indent=4)
+        print(f"Saved weight HW range dictionary json in: {tmp_filepath}")
+
+    return bw_range_dict
 
 
 def activation_hw_range_search(model_name, activation_sw_range_dict, activation_sw_scale_dict, wt_range_dict, wt_scale_dict, debug=0, force=0, filepath='0', mode='sv', num_bits=8, precision='uint'):
