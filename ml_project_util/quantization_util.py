@@ -1085,12 +1085,10 @@ def wt_hw_range_search(model_name, activation_range_dict, wt_range_dict, filepat
                 wt_hw_range_dict = json.load(f)
                 if f"{num_bits}b" in wt_hw_range_dict and wt_hw_range_dict[f"{num_bits}b"]:
                     print(f'Read wt_hw_range json dictionary from {tmp_filepath} and it has values for {num_bits} bits.')
-                    calculate = 0
-                    # revoke save mode
-                    if(mode == 's'):
-                        mode = ''
-                    if(mode == 'sv'):
-                        mode = 'v'
+                    if force==1:
+                        calculate = 1
+                    else:
+                        calculate = 0
                 else:
                     print("'8b' is missing or empty from dictionary.")
                     calculate = 1
@@ -1176,6 +1174,9 @@ def wt_hw_range_search(model_name, activation_range_dict, wt_range_dict, filepat
             if(verbose==1 or debug==1):
                 print('\n')
 
+            # Update or add the subdictionary for give bit-width
+            wt_hw_range_dict[f"{num_bits}b"] = bw_range_dict
+
     # Shows message for the user to choose if they want to overwrite
     if(ask_message==1 and (mode == 's' or mode == 'sv')):
         while True:
@@ -1190,10 +1191,6 @@ def wt_hw_range_search(model_name, activation_range_dict, wt_range_dict, filepat
                 break
             else:
                 print("Invalid input.")
-
-
-    # Update or add the subdictionary for give bit-width
-    wt_hw_range_dict[f"{num_bits}b"] = bw_range_dict
 
     if mode=='s' or mode=='sv':
         parent_folder = os.path.dirname(tmp_filepath)
