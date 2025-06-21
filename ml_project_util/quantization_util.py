@@ -1102,32 +1102,36 @@ def wt_hw_range_search(model_name, activation_range_dict, wt_range_dict, filepat
         calculate = 1
         wt_hw_range_dict = {}
 
-    ask_message = 0
-    if(force==0):
-        if os.path.exists(tmp_filepath):
-            try:
-                with open(tmp_filepath, 'r') as f:
-                    wt_hw_range_dict = json.load(f)
-                    if f"{num_bits}b" in wt_hw_range_dict and wt_hw_range_dict[f"{num_bits}b"]:
-                        print(f'Read wt_hw_range json dictionary from {tmp_filepath} and it has values for {num_bits} bits.')
-                        calculate = 0
-                        # revoke save mode
-                        if(mode == 's'):
-                            mode = ''
-                        if(mode == 'sv'):
-                            mode = 'v'
-                    else:
-                        print("'8b' is missing or empty from dictionary.")
-                        calculate = 1
-            except:
-                print('Wrong format for reading complete dictionarys json!!')
-                calculate = 1
-        else:
-            calculate = 1
+    if(calculate==1 and force==1):
+        ask_message = 1
     else:
-        calculate = 1
-        if os.path.exists(tmp_filepath):
-            ask_message = 1
+        ask_message = 0
+
+    # if(force==0):
+    #     if os.path.exists(tmp_filepath):
+    #         try:
+    #             with open(tmp_filepath, 'r') as f:
+    #                 wt_hw_range_dict = json.load(f)
+    #                 if f"{num_bits}b" in wt_hw_range_dict and wt_hw_range_dict[f"{num_bits}b"]:
+    #                     print(f'Read wt_hw_range json dictionary from {tmp_filepath} and it has values for {num_bits} bits.')
+    #                     calculate = 0
+    #                     # revoke save mode
+    #                     if(mode == 's'):
+    #                         mode = ''
+    #                     if(mode == 'sv'):
+    #                         mode = 'v'
+    #                 else:
+    #                     print("'8b' is missing or empty from dictionary.")
+    #                     calculate = 1
+    #         except:
+    #             print('Wrong format for reading complete dictionarys json!!')
+    #             calculate = 1
+    #     else:
+    #         calculate = 1
+    # else:
+    #     calculate = 1
+    #     if os.path.exists(tmp_filepath):
+    #         ask_message = 1
 
     if mode=='v' or mode=='sv':
         verbose = 1
