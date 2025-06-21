@@ -1079,6 +1079,29 @@ def wt_hw_range_search(model_name, activation_range_dict, wt_range_dict, filepat
         tmp_filepath = filepath
 
     # Flag inputs handling
+    if os.path.exists(tmp_filepath):
+        try:
+            with open(tmp_filepath, 'r') as f:
+                wt_hw_range_dict = json.load(f)
+                if f"{num_bits}b" in wt_hw_range_dict and wt_hw_range_dict[f"{num_bits}b"]:
+                    print(f'Read wt_hw_range json dictionary from {tmp_filepath} and it has values for {num_bits} bits.')
+                    calculate = 0
+                    # revoke save mode
+                    if(mode == 's'):
+                        mode = ''
+                    if(mode == 'sv'):
+                        mode = 'v'
+                else:
+                    print("'8b' is missing or empty from dictionary.")
+                    calculate = 1
+        except:
+            print('Wrong format for reading complete dictionarys json!!')
+            calculate = 1
+            wt_hw_range_dict = {}
+    else:
+        calculate = 1
+        wt_hw_range_dict = {}
+
     ask_message = 0
     if(force==0):
         if os.path.exists(tmp_filepath):
@@ -1117,9 +1140,7 @@ def wt_hw_range_search(model_name, activation_range_dict, wt_range_dict, filepat
             print(layer_list)
             print('\n')
 
-        wt_hw_range_dict = {}
-        wt_hw_range_dict = {f"{num_bits}b": {}}
-        wt_hw_range_dict = {f"{num_bits}b": {"weight": {}, "bias": {}}}
+        bw_range_dict = {}
 
         for i in range(1, len(layer_list)):
             if(verbose==1 or debug==1):
@@ -1135,7 +1156,7 @@ def wt_hw_range_search(model_name, activation_range_dict, wt_range_dict, filepat
 
             N = num_bits + k
 
-            wt_hw_range_dict[f"{num_bits}b"] = {layer_list[i]: {"min": float(-wt_range), "max": float(wt_range)}}
+            bw_range_dict = {layer_list[i]: {"min": float(-wt_range), "max": float(wt_range)}}
 
             if(debug==1):
                 print(f'tmp: {tmp}')
@@ -1151,7 +1172,13 @@ def wt_hw_range_search(model_name, activation_range_dict, wt_range_dict, filepat
             if(verbose==1 or debug==1):
                 print('\n')
 
-    # Return the dict for num_bits only
+
+    # Update or add the subdictionary for give bit-width
+    wt_hw_range_dict[f"{num_bits}b"] = bw_range_dict
+
+    # Save the updated dictionary back to the JSON file
+    with open(tmp_filepath, 'w') as f:
+        json.dump(wt_hw_range_dict, f, indent=4)
     return wt_hw_range_dict
 
 
