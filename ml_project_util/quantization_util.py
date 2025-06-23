@@ -1757,55 +1757,36 @@ def quant_activations(model, model_name, num_bits=8, input_shape=(224,224,3), mo
     return quant_activation_model, acc, loss
 
 
-def quant_weights(model, model_name, num_bits=8, range_path='0', quant='symmetric', mode='eval', design='hw', batch_len=157, precision='uint'):
+def quant_weights(model, model_name, num_bits=8, quant='symmetric', mode='eval', design='hw', batch_len=157, precision='uint'):
     # quant: returns model with quantized weights
     # eval: evaluates model with quantized weights & returns model with quantized weights
     if(quant!='symmetric'):
         print('No asymmetric quantization developed yet!')
         return 1
     
-    # Get range from json or search for it
-    if(range_path=='0'):
-        dict = path_definition()
-        BASE_PATH = dict['BASE_PATH']
-        short_name = model_name[:-10]
-        filepath = f'{BASE_PATH}/Docs_Reports/Quant/Ranges/{short_name}_wt_range.json'
+    # if hwa -> activation_range & wt_hw_range
+    # if hww -> activation_hw_range & wt_range
+    # if sw -> activation_range & wt_range
+
+    # Get activation & wt ranges from json or calculate them
+    if design == 'sw':
+        sampled_files = gen_sample_paths()
+        activation_range_dict = activation_range_search(sampled_files, model, model_name, mode='s', force=0)
+        wt_range_dict = wt_range_search(model, model_name, mode='s', force=0)
+    elif design == 'hww':
+        sampled_files = gen_sample_paths()
+        wt_range_dict = wt_range_search(model, model_name, mode='s', force=0)
+        activation_range_dict_tmp = activation_range_search(sampled_files, model, model_name, mode='s', filepath='0', force=0)
+        activation_range_dict_tmp2 = activation_hw_range_search(model_name, activation_range_dict_tmp, wt_range_dict, force=0, debug=0, num_bits=num_bits)
+        activation_range_dict = activation_range_dict_tmp2[f"{num_bits}b"]
+    elif design == 'hwa':
+        sampled_files = gen_sample_paths()
+        activation_range_dict = activation_range_search(sampled_files, model, model_name, mode='s', filepath='0', force=0)
+        wt_range_dict_tmp = wt_range_search(model, model_name, mode='s', force=0)
+        wt_range_dict_tmp2 = wt_hw_range_search(model_name, activation_range_dict, wt_range_dict_tmp, force=0, debug=0, num_bits=num_bits)
+        wt_range_dict = wt_range_dict_tmp2[f"{num_bits}b"]
     else:
-        filepath = range_path
-    try:
-        with open(filepath, 'r') as f:
-            weight_ranges = json.load(f)
-        print(f'Read weight quantization range from {filepath}.')
-    except:
-        print(f'Weight quantization not found in {filepath}, searching now...')
-        weight_ranges = wt_range_search(model, model_name)
-
-    # Get activation range from json
-    if design == 'hw':
-        
-        # activation_sw_range_dict_path = f"{BASE_PATH}/Docs_Reports/Quant/Ranges/{short_name}_activation_sw_range.json"
-        # if not (os.path.isfile(activation_sw_range_dict_path)):
-
-        sampled_files = gen_sample_paths()
-        activation_sw_range_dict = activation_range_search(sampled_files, model, model_name, mode='s', filepath='0', force=0)
-        
-        # activation_sw_scale_dict_path = f"{BASE_PATH}/Docs_Reports/Quant/Ranges/{short_name}_activation_sw_scale.json"
-        # if not (os.path.isfile(activation_sw_scale_dict_path)):
-        activation_sw_scale_dict = activation_sw_scale_search(activation_sw_range_dict, model_name, filepath='0', force=0, mode='s', precision=precision)
-        
-        # wt_range_dict_path = f"{BASE_PATH}/Docs_Reports/Quant/Ranges/{short_name}_wt_range.json"
-        # if not (os.path.isfile(wt_range_dict_path)):
-        wt_range_dict = wt_range_search(model, model_name, mode='s', filepath='0', force=0)
-
-        # wt_scale_dict_path = f"{BASE_PATH}/Docs_Reports/Quant/Ranges/{short_name}_wt_scale.json"
-        # if not (os.path.isfile()):
-        wt_scale_dict = wt_scale_search(wt_range_dict, model_name, filepath='0', force=0, mode='s')
-        
-        complete_dict = activation_hw_range_search(model_name, activation_sw_range_dict, activation_sw_scale_dict, wt_range_dict, wt_scale_dict, mode='s', precision=precision)
-        activation_ranges = complete_dict['activation_hw_range_dict']
-    elif design == 'sw':
-        sampled_files = gen_sample_paths()
-        activation_ranges = activation_range_search(sampled_files, model, model_name, mode='s', filepath='0', force=0)
+        ValueError("Wrong design variable input.")
 
     # activation_range_filepath = f'{BASE_PATH}/Docs_Reports/Quant/Ranges/{short_name}_activation_{design}_range.json'
     # with open(activation_range_filepath, 'r') as f:
@@ -1834,8 +1815,8 @@ def quant_weights(model, model_name, num_bits=8, range_path='0', quant='symmetri
     for layer in model.layers:
         if hasattr(layer, "get_weights") and hasattr(layer, "set_weights"):
             weights = layer.get_weights()
-            if weights and layer.name in weight_ranges:
-                layer_range_info = weight_ranges[layer.name]
+            if weights and layer.name in wt_range_dict:
+                layer_range_info = wt_range_dict[layer.name]
                 new_weights = []
                 for i, w in enumerate(weights):
                     if i == 0:
@@ -1843,7 +1824,7 @@ def quant_weights(model, model_name, num_bits=8, range_path='0', quant='symmetri
                         range_info = layer_range_info['weight']
                     else:
                         # Bias tensor
-                        range_info = activation_ranges[layer.name]
+                        range_info = activation_range_dict[layer.name]
                     quantized = quantize_tensor_symmetric(w, range_info, num_bits=num_bits)
                     new_weights.append(quantized)
                 layer.set_weights(new_weights)
