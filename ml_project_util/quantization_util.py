@@ -739,7 +739,7 @@ def compute_symmetric_int8_wt_scales(range_dict):
     return scale_dict
 
 
-def gen_sample_paths(path_dataset='0', num_samples=40):
+def gen_sample_paths(path_dataset='0', num_samples=500):
     import os
     import random
 
