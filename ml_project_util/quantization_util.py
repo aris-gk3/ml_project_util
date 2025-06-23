@@ -1499,7 +1499,7 @@ def complete_dict_search(model, model_name, filepath='0', force=0, mode='sv', de
         # with open(tmp_filepath, 'r') as f:
         #     wt_hw_range_dict = json.load(f)
 
-        complete_dict = {"actication_range": activation_range_dict,
+        complete_dict = {"activation_range": activation_range_dict,
                         "wt_range": wt_range_dict,
                         "activation_hw_range": activation_hw_range_dict,
                         "wt_hw_range": wt_hw_range_dict}
@@ -1725,9 +1725,8 @@ def quant_activations(model, model_name, num_bits=8, input_shape=(224,224,3), mo
         print(f'Quantization range not found in {filepath}, recalculating.')
         # calculate and save json with ranges
         if(design=='hww'):
-            complete_dict = complete_dict_search(model, model_name, force=0, debug=0, mode='s', filepath='0')
+            complete_dict = complete_dict_search(model, model_name, force=0, mode='s', debug=0, num_bits=num_bits)
             range_dict = complete_dict["activation_hw_range_dict"]
-            # function that calculates hw range
         else:
             sampled_files = gen_sample_paths()
             range_dict = activation_range_search(sampled_files, model, model_name, mode='s')
