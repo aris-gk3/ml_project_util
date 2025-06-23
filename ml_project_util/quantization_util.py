@@ -1444,7 +1444,7 @@ def activation_hw_range_search_old(model_name, activation_sw_range_dict, activat
     return complete_dict
 
 
-def complete_dict_search(model, model_name, force=0, debug=0, mode='sv', filepath='0'):
+def complete_dict_search(model, model_name, filepath='0', force=0, mode='sv', debug=0, num_bits=8):
     # s: save
     # v: verbose
     # sv: save & verbose
@@ -1452,16 +1452,75 @@ def complete_dict_search(model, model_name, force=0, debug=0, mode='sv', filepat
     #        1 -> calculate &  return, if file exists, ask if you want to overwrite
     # debug: prints layer by layer calculations
 
-    sampled_files = gen_sample_paths()
-    activation_sw_range_dict = activation_range_search(sampled_files, model, model_name, mode=mode, force=force)
+    if(filepath == '0'):
+        dict = path_definition()
+        BASE_PATH = dict['BASE_PATH']
+        short_name = model_name[:-10]
+        filepath = f'{BASE_PATH}/Docs_Reports/Quant/Ranges/{short_name}_complete_dict.json'
+    else:
+        filepath = filepath
 
-    wt_range_dict = wt_range_search(model, model_name, mode=mode)
+    ask_message = 0
+    if(force==0):
+        if os.path.exists(filepath):
+            try:
+                with open(filepath, 'r') as f:
+                    complete_dict = json.load(f)
+                print(f'Read complete dictionary json from {filepath}')
+                calculate = 0
+                 # revoke save mode
+                if(mode == 's'):
+                    mode = ''
+                if(mode == 'sv'):
+                    mode = 'v'
+            except:
+                print('Wrong format for reading complete dictionary from json!!')
+                calculate = 1
+        else:
+            calculate = 1
+    else:
+        calculate = 1
+        if os.path.exists(filepath):
+            ask_message = 1
 
-    wt_scale_dict = wt_scale_search(wt_range_dict, model_name, mode=mode)
+    if (calculate == 1):
+        sampled_files = gen_sample_paths()
+        activation_range_dict = activation_range_search(sampled_files, model, model_name, force=force, mode=mode)
+        wt_range_dict = wt_range_search(model, model_name, force=force, mode=mode)
 
-    activation_sw_scale_dict = activation_sw_scale_search(activation_sw_range_dict, model_name, mode=mode)
+        activation_hw_range_dict = activation_hw_range_search(model_name, activation_range_dict, wt_range_dict, force=force, debug=debug, num_bits=num_bits)
 
-    complete_dict = activation_hw_range_search(model_name, activation_sw_range_dict, activation_sw_scale_dict, wt_range_dict, wt_scale_dict, debug=debug, force=force, mode=mode, filepath=filepath)
+        wt_hw_range_dict = wt_hw_range_search(model_name, activation_range_dict, wt_range_dict, force=force, debug=debug, num_bits=num_bits)
+
+        complete_dict = {"actication_range": activation_range_dict,
+                        "wt_range": wt_range_dict,
+                        "activation_hw_range": activation_hw_range_dict,
+                        "wt_hw_range": wt_hw_range_dict}
+    
+    if mode=='v' or mode=='sv':
+        print(json.dumps(complete_dict, indent=2))
+
+    # Shows message for the user to choose if they want to overwrite
+    if(ask_message==1 and (mode == 's' or mode == 'sv')):
+        while True:
+            response = input("Do you want to overwrite previous data? (y/n): ").strip().lower()
+            if response == 'y':
+                break
+            elif response == 'n':
+                if(mode == 's'):
+                    mode = ''
+                if(mode == 'sv'):
+                    mode = 'v'
+                break
+            else:
+                print("Invalid input.")
+
+    if mode=='s' or mode=='sv':
+        parent_folder = os.path.dirname(filepath)
+        os.makedirs(parent_folder, exist_ok=True)
+        with open(filepath, "w") as f:
+            json.dump(complete_dict, f, indent=4)
+        print(f"Saved json in: {filepath}")
 
     return complete_dict
 
@@ -1631,15 +1690,23 @@ def quant_activations(model, model_name, num_bits=8, input_shape=(224,224,3), mo
     # Show mode message
     if(design=='sw'):
         print('Quantization on arbitrary symmetric ranges is applied.')
-    elif(design=='hw'):
+    elif(design=='hww'):
         print('Quantization on symmetric ranges that enable shifting on interlayer scaling is applied.')
+        print('Weight focused solution chosen.')
+    elif(design=='hwa'):
+        print('Quantization on symmetric ranges that enable shifting on interlayer scaling is applied.')
+        print('Activation focused solution chosen.')
 
     # Read appropriate ranges
     if(range_path == '0'):
         dict = path_definition()
         BASE_PATH = dict['BASE_PATH']
         short_name = model_name[:-10]
-        filepath = f'{BASE_PATH}/Docs_Reports/Quant/Ranges/{short_name}_activation_{design}_range.json'
+        if(design=='hww'):
+            filepath_var = '_hw_'
+        else:
+            filepath_var = '_'
+        filepath = f'{BASE_PATH}/Docs_Reports/Quant/Ranges/{short_name}_activation{filepath_var}range.json'
     else:
         filepath = range_path
 
@@ -1650,7 +1717,7 @@ def quant_activations(model, model_name, num_bits=8, input_shape=(224,224,3), mo
     except:
         print(f'Quantization range not found in {filepath}, recalculating.')
         # calculate and save json with ranges
-        if(design=='hw'):
+        if(design=='hww'):
             complete_dict = complete_dict_search(model, model_name, force=0, debug=0, mode='s', filepath='0')
             range_dict = complete_dict["activation_hw_range_dict"]
             # function that calculates hw range
