@@ -1842,7 +1842,7 @@ def quant_weights(model, model_name, num_bits=8, quant='symmetric', mode='eval',
     return model, acc, loss
 
 
-def quant_model(model, model_name, num_bits=8, design='hw', batch_len=157, force=0, precision='uint'):
+def quant_model(model, model_name, num_bits=8, design='hw', batch_len=157, force=0):
     # checks if for bw there is already a value in json, hanldes it as above
     dict = path_definition()
     BASE_PATH = dict['BASE_PATH']
@@ -1908,13 +1908,16 @@ def quant_bw_search(model, model_name, range):
 
     sw_metrics = {}
     hww_metrics = {}
+    hwa_metrics = {}
 
     for i in range:
         print(f"Quantizing model to {i} bits...")
         _, acc, loss = quant_model(model, model_name, num_bits=i, design='sw', batch_len=1000, force=1, precision='uint')
         sw_metrics[f"{i}b"] = {"accuracy": float(acc), "loss": float(loss)}
-        _, acc, loss = quant_model(model, model_name, num_bits=i, design='hw', batch_len=1000, force=1, precision='uint')
+        _, acc, loss = quant_model(model, model_name, num_bits=i, design='hww', batch_len=1000, force=1, precision='uint')
         hww_metrics[f"{i}b"] = {"accuracy": float(acc), "loss": float(loss)}
+        _, acc, loss = quant_model(model, model_name, num_bits=i, design='hwa', batch_len=1000, force=1, precision='uint')
+        hwa_metrics[f"{i}b"] = {"accuracy": float(acc), "loss": float(loss)}
         # add to json: sw, hww, hwa
 
     sorted_keys = sorted(sw_metrics.keys(), key=lambda x: int(x[:-1]))
@@ -1924,13 +1927,16 @@ def quant_bw_search(model, model_name, range):
     # Extract accuracy values
     sw_accuracy = [sw_metrics[k]["accuracy"] for k in sorted_keys]
     hww_accuracy = [hww_metrics[k]["accuracy"] for k in sorted_keys]
+    hwa_accuracy = [hwa_metrics[k]["accuracy"] for k in sorted_keys]
     sw_loss = [sw_metrics[k]["loss"] for k in sorted_keys]
     hww_loss = [hww_metrics[k]["loss"] for k in sorted_keys]
+    hwa_loss = [hwa_metrics[k]["loss"] for k in sorted_keys]
 
     # Plot accuracies
     plt.figure(figsize=(8, 4))
     plt.plot(sorted_keys, sw_accuracy, marker='o', label='SW Accuracy', color='blue')
     plt.plot(sorted_keys, hww_accuracy, marker='x', label='HWW Accuracy', color='orange')
+    plt.plot(sorted_keys, hwa_accuracy, marker='s', label='HWA Accuracy', color='green')
 
     plt.title("Accuracy Comparison")
     plt.xlabel("Bit-width")
@@ -1945,6 +1951,7 @@ def quant_bw_search(model, model_name, range):
     plt.figure(figsize=(8, 4))
     plt.plot(sorted_keys, sw_loss, marker='o', label='SW Loss', color='blue')
     plt.plot(sorted_keys, hww_loss, marker='x', label='HWW Loss', color='orange')
+    plt.plot(sorted_keys, hwa_loss, marker='s', label='HWA Loss', color='green')
 
     plt.title("Loss Comparison")
     plt.xlabel("Bit-width")
@@ -1957,6 +1964,7 @@ def quant_bw_search(model, model_name, range):
     # print json
     print(json.dumps(sw_metrics, indent=4))
     print(json.dumps(hww_metrics, indent=4))
+    print(json.dumps(hwa_metrics, indent=4))
     # plot the json
 
 
