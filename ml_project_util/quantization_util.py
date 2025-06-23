@@ -922,7 +922,7 @@ def wt_range_search(model, model_name, mode='sv', filepath='0', force=0):
         print(json.dumps(layer_ranges, indent=2))
 
     # Shows message for the user to choose if they want to overwrite
-    if(ask_message==1 and (mode == 's' or mode == 'sv')):
+    if(ask_message==1 and (mode == 's' or mode == 'sv') and BASE_PATH[:7]!='/kaggle'):
         while True:
             response = input("Do you want to overwrite previous data? (y/n): ").strip().lower()
             if response == 'y':
@@ -1027,7 +1027,7 @@ def activation_range_search(sampled_files, model, model_name, mode='sv', filepat
             print(f"{layer_name}: min = {stats['min']:.4f}, max = {stats['max']:.4f}")
 
     # Shows message for the user to choose if they want to overwrite
-    if(ask_message==1 and (mode == 's' or mode == 'sv')):
+    if(ask_message==1 and (mode == 's' or mode == 'sv') and BASE_PATH[:7]!='/kaggle'):
         while True:
             response = input("Do you want to overwrite previous data? (y/n): ").strip().lower()
             if response == 'y':
@@ -1155,7 +1155,7 @@ def wt_hw_range_search(model_name, activation_range_dict, wt_range_dict, filepat
             wt_hw_range_dict[f"{num_bits}b"] = bw_range_dict
 
     # Shows message for the user to choose if they want to overwrite
-    if(ask_message==1 and (mode == 's' or mode == 'sv')):
+    if(ask_message==1 and (mode == 's' or mode == 'sv') and BASE_PATH[:7]!='/kaggle'):
         while True:
             response = input("Do you want to overwrite previous data? (y/n): ").strip().lower()
             if response == 'y':
@@ -1757,7 +1757,7 @@ def quant_activations(model, model_name, num_bits=8, input_shape=(224,224,3), mo
     return quant_activation_model, acc, loss
 
 
-def quant_weights(model, model_name, num_bits=8, quant='symmetric', mode='eval', design='hw', batch_len=157, precision='uint'):
+def quant_weights(model, model_name, num_bits=8, quant='symmetric', mode='eval', design='sw', batch_len=157):
     # quant: returns model with quantized weights
     # eval: evaluates model with quantized weights & returns model with quantized weights
     if(quant!='symmetric'):
@@ -1821,7 +1821,10 @@ def quant_weights(model, model_name, num_bits=8, quant='symmetric', mode='eval',
                 for i, w in enumerate(weights):
                     if i == 0:
                         # Weight tensor (e.g. kernel)
-                        range_info = layer_range_info['weight']
+                        try:
+                            range_info = layer_range_info['weight']
+                        except:
+                            range_info = layer_range_info
                     else:
                         # Bias tensor
                         range_info = activation_range_dict[layer.name]
@@ -1865,7 +1868,7 @@ def quant_model(model, model_name, num_bits=8, design='hw', batch_len=157, force
         ask_message = 0
 
     if(calculate==1):
-        qw_model, _, _ = quant_weights(model, model_name, num_bits=num_bits, mode='quant', design=design, batch_len=batch_len, precision=precision)
+        qw_model, _, _ = quant_weights(model, model_name, num_bits=num_bits, mode='quant', design=design, batch_len=batch_len)
         qwa_model, acc, loss = quant_activations(qw_model, model_name, num_bits=num_bits, mode='eval', design=design, batch_len=batch_len)
     else:
         qwa_model = None
