@@ -1721,14 +1721,18 @@ def quant_activations(model, model_name, num_bits=8, input_shape=(224,224,3), mo
 
     try:
         with open(filepath, 'r') as f:
-            range_dict = json.load(f)
+            range_dict_tmp = json.load(f)
+        if(design=='hww'):
+            range_dict = range_dict_tmp[f"{num_bits}b"]
+        else:
+            range_dict = range_dict_tmp
         print(f'Read {design} activation quantization range from {filepath}.')
     except:
         print(f'Quantization range not found in {filepath}, recalculating.')
         # calculate and save json with ranges
         if(design=='hww'):
             complete_dict = complete_dict_search(model, model_name, force=0, mode='s', debug=0, num_bits=num_bits)
-            range_dict = complete_dict["activation_hw_range"]
+            range_dict = complete_dict["activation_hw_range"][f"{num_bits}b"]
         else:
             sampled_files = gen_sample_paths()
             range_dict = activation_range_search(sampled_files, model, model_name, mode='s')
