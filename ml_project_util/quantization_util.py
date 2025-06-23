@@ -1912,11 +1912,11 @@ def quant_bw_search(model, model_name, range):
 
     for i in range:
         print(f"Quantizing model to {i} bits...")
-        _, acc, loss = quant_model(model, model_name, num_bits=i, design='sw', batch_len=1000, force=1, precision='uint')
+        _, acc, loss = quant_model(model, model_name, num_bits=i, design='sw', batch_len=1000, force=1)
         sw_metrics[f"{i}b"] = {"accuracy": float(acc), "loss": float(loss)}
-        _, acc, loss = quant_model(model, model_name, num_bits=i, design='hww', batch_len=1000, force=1, precision='uint')
+        _, acc, loss = quant_model(model, model_name, num_bits=i, design='hww', batch_len=1000, force=1)
         hww_metrics[f"{i}b"] = {"accuracy": float(acc), "loss": float(loss)}
-        _, acc, loss = quant_model(model, model_name, num_bits=i, design='hwa', batch_len=1000, force=1, precision='uint')
+        _, acc, loss = quant_model(model, model_name, num_bits=i, design='hwa', batch_len=1000, force=1)
         hwa_metrics[f"{i}b"] = {"accuracy": float(acc), "loss": float(loss)}
         # add to json: sw, hww, hwa
 
