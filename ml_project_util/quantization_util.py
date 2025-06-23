@@ -1091,6 +1091,11 @@ def wt_hw_range_search(model_name, activation_range_dict, wt_range_dict, filepat
                         ask_message = 1
                     else:
                         calculate = 0
+                        # revoke save mode
+                        if(mode == 's'):
+                            mode = ''
+                        if(mode == 'sv'):
+                            mode = 'v'
                 else:
                     print(f"'{num_bits}b' is missing or empty from dictionary.")
                     calculate = 1
@@ -1112,13 +1117,12 @@ def wt_hw_range_search(model_name, activation_range_dict, wt_range_dict, filepat
     else:
         verbose = 0
 
+    bw_range_dict = {}
     if(calculate == 1):
         layer_list = list(activation_range_dict.keys())
         if(verbose==1):
             print(layer_list)
             print('\n')
-
-        bw_range_dict = {}
 
         for i in range(1, len(layer_list)):
             if(verbose==1 or debug==1):
