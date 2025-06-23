@@ -1176,7 +1176,7 @@ def wt_hw_range_search(model_name, activation_range_dict, wt_range_dict, filepat
             json.dump(wt_hw_range_dict, f, indent=4)
         print(f"Saved weight HW range dictionary json in: {tmp_filepath}")
 
-    return bw_range_dict
+    return wt_hw_range_dict
 
 
 def activation_hw_range_search(model_name, activation_range_dict, wt_range_dict, filepath='0', force=0, mode='sv', debug=0, num_bits=8):
@@ -1495,6 +1495,9 @@ def complete_dict_search(model, model_name, filepath='0', force=0, mode='sv', de
         activation_hw_range_dict = activation_hw_range_search(model_name, activation_range_dict, wt_range_dict, force=force, debug=debug, num_bits=num_bits)
 
         wt_hw_range_dict = wt_hw_range_search(model_name, activation_range_dict, wt_range_dict, force=force, debug=debug, num_bits=num_bits)
+
+        # with open(tmp_filepath, 'r') as f:
+        #     wt_hw_range_dict = json.load(f)
 
         complete_dict = {"actication_range": activation_range_dict,
                         "wt_range": wt_range_dict,
