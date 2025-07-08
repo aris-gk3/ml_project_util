@@ -1823,6 +1823,8 @@ def quantize_tensor_symmetric(w, w_range, num_bits=8):
 
     w_min = w_range["min"]
     w_max = w_range["max"]
+    if(w_min != -w_max):
+        ValueError("Quantization Range given not Symmetric!")
 
     # Use symmetric range centered at 0
     max_abs = max(abs(w_min), abs(w_max))
