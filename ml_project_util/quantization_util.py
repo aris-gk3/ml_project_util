@@ -1244,6 +1244,7 @@ def activation_hw_range_search(model_name, activation_range_dict, wt_range_dict,
             k, activation_range = find_smallest_power_of_two(tmp, activation_range_dict[layer_list[i]]['max'])
             
             N = num_bits + k
+            print(f"For layer {layer_list[i]}: k={k}, N_i={N}")
 
             bw_range_dict[layer_list[i]] = {"min": 0, "max": float(activation_range)}
 
