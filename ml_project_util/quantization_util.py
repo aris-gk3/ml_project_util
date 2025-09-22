@@ -1779,34 +1779,57 @@ def quant_bw_search(model, model_name, range):
     hww_loss = [hww_metrics[k]["loss"] for k in sorted_keys]
     hwa_loss = [hwa_metrics[k]["loss"] for k in sorted_keys]
 
-    # Plot accuracies
-    plt.figure(figsize=(8, 4))
-    plt.plot(sorted_keys, sw_accuracy, marker='o', label='SW Accuracy', color='blue')
-    plt.plot(sorted_keys, hww_accuracy, marker='x', label='HWW Accuracy', color='orange')
-    plt.plot(sorted_keys, hwa_accuracy, marker='s', label='HWA Accuracy', color='green')
+    # # Plot accuracies
+    # plt.figure(figsize=(8, 4))
+    # plt.plot(sorted_keys, sw_accuracy, marker='o', label='SW Accuracy', color='blue')
+    # plt.plot(sorted_keys, hww_accuracy, marker='x', label='HWW Accuracy', color='orange')
+    # plt.plot(sorted_keys, hwa_accuracy, marker='s', label='HWA Accuracy', color='green')
 
-    plt.title("Accuracy Comparison")
-    plt.xlabel("Bit-width")
-    plt.ylabel("Accuracy")
-    plt.legend()
-    plt.grid(True)
-    plt.tight_layout()
-    plt.show()
+    # plt.title("Accuracy Comparison")
+    # plt.xlabel("Bit-width")
+    # plt.ylabel("Accuracy")
+    # plt.legend()
+    # plt.grid(True)
+    # plt.tight_layout()
+    # plt.show()
 
-    # Plot losses
+    # # Plot losses
 
-    plt.figure(figsize=(8, 4))
-    plt.plot(sorted_keys, sw_loss, marker='o', label='SW Loss', color='blue')
-    plt.plot(sorted_keys, hww_loss, marker='x', label='HWW Loss', color='orange')
-    plt.plot(sorted_keys, hwa_loss, marker='s', label='HWA Loss', color='green')
+    # plt.figure(figsize=(8, 4))
+    # plt.plot(sorted_keys, sw_loss, marker='o', label='SW Loss', color='blue')
+    # plt.plot(sorted_keys, hww_loss, marker='x', label='HWW Loss', color='orange')
+    # plt.plot(sorted_keys, hwa_loss, marker='s', label='HWA Loss', color='green')
 
-    plt.title("Loss Comparison")
-    plt.xlabel("Bit-width")
-    plt.ylabel("Loss")
-    plt.legend()
-    plt.grid(True)
-    plt.tight_layout()
-    plt.show()
+    # plt.title("Loss Comparison")
+    # plt.xlabel("Bit-width")
+    # plt.ylabel("Loss")
+    # plt.legend()
+    # plt.grid(True)
+    # plt.tight_layout()
+    # plt.show()
+
+   # --- Plot Accuracies ---
+    axes[0].plot(sorted_keys, sw_accuracy, marker='o', label='SW Accuracy', color='blue')
+    axes[0].plot(sorted_keys, hww_accuracy, marker='x', label='HWW Accuracy', color='orange')
+    axes[0].plot(sorted_keys, hwa_accuracy, marker='s', label='HWA Accuracy', color='green')
+    axes[0].set_title("Accuracy Comparison")
+    axes[0].set_xlabel("Bit-width")
+    axes[0].set_ylabel("Accuracy")
+    axes[0].legend()
+    axes[0].grid(True)
+    
+    # --- Plot Losses ---
+    axes[1].plot(sorted_keys, sw_loss, marker='o', label='SW Loss', color='blue')
+    axes[1].plot(sorted_keys, hww_loss, marker='x', label='HWW Loss', color='orange')
+    axes[1].plot(sorted_keys, hwa_loss, marker='s', label='HWA Loss', color='green')
+    axes[1].set_title("Loss Comparison")
+    axes[1].set_xlabel("Bit-width")
+    axes[1].set_ylabel("Loss")
+    axes[1].legend()
+    axes[1].grid(True)
+    
+    plt.tight_layout()  # adjust spacing between subplots
+    plt.show() 
 
     # print json
     print(json.dumps(sw_metrics, indent=4))
