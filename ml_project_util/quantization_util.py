@@ -1769,8 +1769,7 @@ def quant_bw_search(model, model_name, range):
 
     sorted_keys = sorted(sw_metrics.keys(), key=lambda x: int(x[:-1]))
     # plot
-    # Extract x (labels), accuracies and losses
-    x_labels = sorted_keys
+    
     # Extract accuracy values
     sw_accuracy = [sw_metrics[k]["accuracy"] for k in sorted_keys]
     hww_accuracy = [hww_metrics[k]["accuracy"] for k in sorted_keys]
@@ -1808,12 +1807,14 @@ def quant_bw_search(model, model_name, range):
     # plt.tight_layout()
     # plt.show()
 
+    # Remove the 'b' and convert to integer
+    x_values = [int(k.replace('b', '')) for k in sorted_keys]
     # Create a figure with 1 row and 2 columns
     fig, axes = plt.subplots(1, 2, figsize=(12, 5))  # 12x5 inches is good for a paper
    # --- Plot Accuracies ---
-    axes[0].plot(sorted_keys, sw_accuracy, marker='o', label='SW Accuracy', color='blue')
-    axes[0].plot(sorted_keys, hww_accuracy, marker='x', label='HWW Accuracy', color='orange')
-    axes[0].plot(sorted_keys, hwa_accuracy, marker='s', label='HWA Accuracy', color='green')
+    axes[0].plot(x_values, sw_accuracy, marker='o', label='SW Accuracy', color='blue')
+    axes[0].plot(x_values, hww_accuracy, marker='x', label='HWW Accuracy', color='orange')
+    axes[0].plot(x_values, hwa_accuracy, marker='s', label='HWA Accuracy', color='green')
     axes[0].set_title("Accuracy Comparison")
     axes[0].set_xlabel("Bit-width")
     axes[0].set_ylabel("Accuracy")
@@ -1821,9 +1822,9 @@ def quant_bw_search(model, model_name, range):
     axes[0].grid(True)
     
     # --- Plot Losses ---
-    axes[1].plot(sorted_keys, sw_loss, marker='o', label='SW Loss', color='blue')
-    axes[1].plot(sorted_keys, hww_loss, marker='x', label='HWW Loss', color='orange')
-    axes[1].plot(sorted_keys, hwa_loss, marker='s', label='HWA Loss', color='green')
+    axes[1].plot(x_values, sw_loss, marker='o', label='SW Loss', color='blue')
+    axes[1].plot(x_values, hww_loss, marker='x', label='HWW Loss', color='orange')
+    axes[1].plot(x_values, hwa_loss, marker='s', label='HWA Loss', color='green')
     axes[1].set_title("Loss Comparison")
     axes[1].set_xlabel("Bit-width")
     axes[1].set_ylabel("Loss")
