@@ -1808,6 +1808,8 @@ def quant_bw_search(model, model_name, range):
     # plt.tight_layout()
     # plt.show()
 
+    # Create a figure with 1 row and 2 columns
+    fig, axes = plt.subplots(1, 2, figsize=(12, 5))  # 12x5 inches is good for a paper
    # --- Plot Accuracies ---
     axes[0].plot(sorted_keys, sw_accuracy, marker='o', label='SW Accuracy', color='blue')
     axes[0].plot(sorted_keys, hww_accuracy, marker='x', label='HWW Accuracy', color='orange')
